@@ -19,7 +19,8 @@ class ScraperTests(unittest.TestCase):
             scraper = Scraper('google')
 
 class ScraperYahooEquityPricesTests(unittest.TestCase):
-    def test_scrape_returns_equity_data(self):
+
+    def test_scrape_returns_data_object(self):
         ticker = 'AMZN'
         dt = datetime.datetime(2019, 8, 23)
 
@@ -27,6 +28,17 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
         results = scraper.scrape_equity_data(ticker, dt)
 
         self.assertIsInstance(results, EquityData)
+
+    def test_scrape_makes_http_request(self):
+        ticker = 'AMZN'
+        dt = datetime.datetime(2019, 8, 23)
+
+        scraper = Scraper('yahoo')
+
+        with patch('urllib.request.Request') as mock_request:
+            results = scraper.scrape_equity_data(ticker, dt)
+            url = r'https://finance.yahoo.com/quote/{ticker}/history?p={ticker}'
+            mock_request.assert_called_once_with(url)
 
 if __name__ == '__main__':
     unittest.main()
