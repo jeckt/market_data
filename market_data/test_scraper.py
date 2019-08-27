@@ -4,8 +4,8 @@ import unittest
 from unittest.mock import patch
 import datetime
 
-import market_data.Scraper as Scraper
-from market_data.Scraper import InvalidSourceError
+import scraper as Scraper
+from scraper import InvalidSourceError
 
 class ScraperTests(unittest.TestCase):
 
