@@ -5,7 +5,7 @@ from unittest import skip
 from unittest.mock import patch
 import datetime
 
-from scraper import Scraper, InvalidSourceError
+from scraper import Scraper, EquityData, InvalidSourceError
 
 class ScraperTests(unittest.TestCase):
 
