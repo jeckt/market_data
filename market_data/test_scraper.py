@@ -18,12 +18,11 @@ class ScraperTests(unittest.TestCase):
         with self.assertRaises(InvalidSourceError):
             scraper = Scraper('google')
 
-    @skip
-    def test_scrape_equity_price_from_yahoo(self):
+    def test_scrape_equity_price_from_yahoo_returns_equity_data(self):
         ticker = 'AMZN'
         dt = datetime.datetime(2019, 8, 23)
 
-        scaper = Scraper('yahoo')
+        scraper = Scraper('yahoo')
         results = scraper.scrape_equity_data(ticker, dt)
 
         self.assertIsInstance(results, EquityData)
