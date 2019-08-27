@@ -4,9 +4,18 @@ import unittest
 from unittest.mock import patch
 import datetime
 
-import market_data.MarketData as MarketData
+import market_data.Scraper as Scraper
+from market_data.Scraper import InvalidSourceError
 
 class ScraperTests(unittest.TestCase):
+
+    def test_scrape_from_valid_source(self):
+        scraper = Scraper('yahoo')
+        self.assertIsInstance(scraper, Scraper)
+
+    def test_invalid_source_scrape_error(self):
+        with self.assertRaises(InvalidSourceError):
+            scraper = Scraper('google')
 
     def test_scrape_equity_price_from_yahoo(self):
         ticker = 'AMZN'
