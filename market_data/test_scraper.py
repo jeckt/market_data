@@ -5,7 +5,8 @@ from unittest import skip
 from unittest.mock import patch
 import datetime
 
-from scraper import Scraper, EquityData, InvalidSourceError
+from scraper import Scraper, EquityData
+from scraper import InvalidSourceError, InvalidTickerError
 
 class ScraperTests(unittest.TestCase):
 
@@ -20,25 +21,28 @@ class ScraperTests(unittest.TestCase):
 
 class ScraperYahooEquityPricesTests(unittest.TestCase):
 
-    def test_scrape_returns_data_object(self):
+    @patch('urllib.request.urlopen', autospec=True)
+    def test_scrape_returns_data_object(self, mock_urlopen):
         ticker = 'AMZN'
         dt = datetime.datetime(2019, 8, 23)
-
         scraper = Scraper('yahoo')
+
+        mock_urlopen.return_value.__enter__.return_value.status = 200
+
         results = scraper.scrape_equity_data(ticker, dt)
 
         self.assertIsInstance(results, EquityData)
 
-    def test_scrape_makes_http_request(self):
-        ticker = 'AMZN'
+    @patch('urllib.request.urlopen', autospec=True)
+    def test_scrape_invalid_ticker(self, mock_urlopen):
+        ticker = 'AMZNN'
         dt = datetime.datetime(2019, 8, 23)
-
         scraper = Scraper('yahoo')
 
-        with patch('urllib.request.Request') as mock_request:
+        mock_urlopen.return_value.__enter__.return_value.status = 404
+
+        with self.assertRaises(InvalidTickerError):
             results = scraper.scrape_equity_data(ticker, dt)
-            url = r'https://finance.yahoo.com/quote/{ticker}/history?p={ticker}'
-            mock_request.assert_called_once_with(url)
 
 if __name__ == '__main__':
     unittest.main()
