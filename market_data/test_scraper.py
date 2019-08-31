@@ -4,6 +4,7 @@ import unittest
 from unittest import skip
 from unittest.mock import patch
 import datetime
+from decimal import Decimal
 
 from scraper import Scraper, EquityData
 from scraper import InvalidSourceError, InvalidTickerError
@@ -32,6 +33,7 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
 
         return data
 
+    @skip
     @patch('urllib.request.urlopen', autospec=True)
     def test_scrape_returns_correct_equity_data(self, mock_urlopen):
         ticker = 'AMZN'
@@ -64,6 +66,29 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
 
         with self.assertRaises(InvalidTickerError):
             results = scraper.scrape_equity_data(ticker, dt)
+
+class EquityDataTests(unittest.TestCase):
+
+    def test_defaults_fields_to_zero(self):
+        d = EquityData()
+        self.assertEqual(d.open, 0)
+        self.assertEqual(d.high, 0)
+        self.assertEqual(d.low, 0)
+        self.assertEqual(d.close, 0)
+        self.assertEqual(d.adj_close, 0)
+        self.assertEqual(d.volume, 0)
+
+    def test_all_fields_price_fields_are_decimals(self):
+        d = EquityData()
+        self.assertIsInstance(d.open, Decimal)
+        self.assertIsInstance(d.high, Decimal)
+        self.assertIsInstance(d.low, Decimal)
+        self.assertIsInstance(d.close, Decimal)
+        self.assertIsInstance(d.adj_close, Decimal)
+
+    def test_volume_field_is_an_integer(self):
+        d = EquityData(volume=400.5)
+        self.assertIsInstance(d.volume, int)
 
 if __name__ == '__main__':
     unittest.main()
