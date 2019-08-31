@@ -7,7 +7,7 @@ import datetime
 from decimal import Decimal
 
 from scraper import Scraper, EquityData
-from scraper import InvalidSourceError, InvalidTickerError
+from scraper import InvalidSourceError, InvalidTickerError, InvalidDateError
 
 import os
 import inspect
@@ -57,6 +57,19 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
                          msg=f'res: {results} != ex: {expected_output}')
 
     @patch('urllib.request.urlopen', autospec=True)
+    def test_scrape_invalid_date(self, mock_urlopen):
+        ticker = 'AMZN'
+        dt = datetime.datetime(2019, 9, 3)
+        scraper = Scraper('yahoo')
+
+        mock_urlopen_context = mock_urlopen.return_value.__enter__.return_value
+        mock_urlopen_context.status = 200
+        mock_urlopen_context.read.return_value = self.load_test_data()
+
+        with self.assertRaises(InvalidDateError):
+            results = scraper.scrape_equity_data(ticker, dt)
+
+    @patch('urllib.request.urlopen', autospec=True)
     def test_scrape_invalid_ticker(self, mock_urlopen):
         ticker = 'AMZNN'
         dt = datetime.datetime(2019, 8, 23)
@@ -66,6 +79,7 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
 
         with self.assertRaises(InvalidTickerError):
             results = scraper.scrape_equity_data(ticker, dt)
+
 
 # TODO(steve): test to make sure the decimal representations
 # that are created are correct. e.g. Decimal(1793.03) != 1793.03

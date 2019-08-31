@@ -34,7 +34,7 @@ class Scraper:
                 d = EquityData(*(v.replace(',', '') for v in values[1:]))
                 return d
 
-        return EquityData()
+        raise InvalidDateError(f'{ticker}: {date}')
 
 # TODO(steve): make the equity data class more robust
 # by disabling the ability for callers to access the
@@ -75,4 +75,7 @@ class InvalidSourceError(Exception):
     pass
 
 class InvalidTickerError(Exception):
+    pass
+
+class InvalidDateError(Exception):
     pass
