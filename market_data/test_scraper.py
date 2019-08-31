@@ -33,7 +33,6 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
 
         return data
 
-    @skip
     @patch('urllib.request.urlopen', autospec=True)
     def test_scrape_returns_correct_equity_data(self, mock_urlopen):
         ticker = 'AMZN'
@@ -89,6 +88,20 @@ class EquityDataTests(unittest.TestCase):
     def test_volume_field_is_an_integer(self):
         d = EquityData(volume=400.5)
         self.assertIsInstance(d.volume, int)
+
+    def test_two_equity_data_objects_equal(self):
+        d1 = EquityData(open=10, high=15.5, low=9.1, close=12.33,
+                       adj_close=12.33, volume=32000)
+        d2 = EquityData(open=10, high=15.5, low=9.1, close=12.33,
+                       adj_close=12.33, volume=32000)
+        self.assertEqual(d1, d2)
+
+    def test_two_equity_data_objects_not_equal(self):
+        d1 = EquityData(open=10, high=15.5, low=9.1, close=12.33,
+                       adj_close=12.33, volume=32000)
+        d2 = EquityData(open=1, high=5.5, low=0.1, close=1.28,
+                       adj_close=1.28, volume=2240)
+        self.assertNotEqual(d1, d2)
 
 if __name__ == '__main__':
     unittest.main()
