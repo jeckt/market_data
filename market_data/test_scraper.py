@@ -39,21 +39,22 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
         dt = datetime.datetime(2019, 8, 23)
         scraper = Scraper('yahoo')
 
-        mock_urlopen_context = mock_urlopen.return_value.__enter__
-        mock_urlopen_context.return_value.status = 200
+        mock_urlopen_context = mock_urlopen.return_value.__enter__.return_value
+        mock_urlopen_context.status = 200
         mock_urlopen_context.read.return_value = self.load_test_data()
 
         results = scraper.scrape_equity_data(ticker, dt)
         expected_output = EquityData()
-        expected_output.open = 1793.03
-        expected_output.high = 1804.90
-        expected_output.low = 1745.23
-        expected_output.close = 1749.62
-        expected_output.adj_close = 1749.62
-        expected_output.volume = 5270800
+        expected_output.open = Decimal('1793.03')
+        expected_output.high = Decimal('1804.90')
+        expected_output.low = Decimal('1745.23')
+        expected_output.close = Decimal('1749.62')
+        expected_output.adj_close = Decimal('1749.62')
+        expected_output.volume = int(5270800)
 
         self.assertIsInstance(results, EquityData)
-        self.assertEqual(results, expected_output)
+        self.assertEqual(results, expected_output,
+                         msg=f'res: {results} != ex: {expected_output}')
 
     @patch('urllib.request.urlopen', autospec=True)
     def test_scrape_invalid_ticker(self, mock_urlopen):
@@ -66,6 +67,9 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
         with self.assertRaises(InvalidTickerError):
             results = scraper.scrape_equity_data(ticker, dt)
 
+# TODO(steve): test to make sure the decimal representations
+# that are created are correct. e.g. Decimal(1793.03) != 1793.03
+# to do that you need to pass in a string i.e. Decimal('1793.03')
 class EquityDataTests(unittest.TestCase):
 
     def test_defaults_fields_to_zero(self):

@@ -1,6 +1,7 @@
 import datetime
 import urllib.request
 from decimal import Decimal
+from bs4 import BeautifulSoup
 
 class Scraper:
 
@@ -15,6 +16,23 @@ class Scraper:
         with urllib.request.urlopen(req) as response:
             if response.status == 404:
                 raise InvalidTickerError(ticker)
+            page = response.read().decode('utf-8')
+
+        # NOTE(steve): parse the html page and find the table
+        # of historical price data based on table attributes
+        # to make it slightly more robust to changes in the webpage
+        parsed_html = BeautifulSoup(page, features='html.parser')
+        data_table = parsed_html.body.find('table',
+                            attrs={'data-test':'historical-prices'})
+        data_table = data_table.find('tbody')
+
+        for row in data_table.children:
+            values = [col.next_element.text for col in
+                      row.children if col.find('span')]
+            values[0] = datetime.datetime.strptime(values[0], '%b %d, %Y')
+            if values[0] == date:
+                d = EquityData(*(v.replace(',', '') for v in values[1:]))
+                return d
 
         return EquityData()
 
@@ -43,6 +61,15 @@ class EquityData:
               other.close, other.adj_close, other.volume]
         results = (v1 == v2 for v1, v2 in zip(d1, d2))
         return all(results)
+
+    def __str__(self):
+        s = f'[open={self.open}, '
+        s += f'high={self.high}, '
+        s += f'low={self.low}, '
+        s += f'close={self.close}, '
+        s += f'adj_close={self.adj_close}, '
+        s += f'volume={self.volume}]'
+        return s
 
 class InvalidSourceError(Exception):
     pass
