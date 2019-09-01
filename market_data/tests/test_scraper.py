@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+import os
+import inspect
+os.chdir((os.path.dirname(inspect.getfile(inspect.currentframe()))))
+
 import unittest
 from unittest import skip
 from unittest.mock import patch
@@ -8,10 +12,6 @@ from decimal import Decimal
 
 from scraper import Scraper, EquityData
 from scraper import InvalidSourceError, InvalidTickerError, InvalidDateError
-
-import os
-import inspect
-os.chdir((os.path.dirname(inspect.getfile(inspect.currentframe()))))
 
 class ScraperTests(unittest.TestCase):
 
