@@ -23,16 +23,16 @@ class MarketDataTests(unittest.TestCase):
     # individually as individual tests will require
     # knowledge of the implementation.
     def test_add_and_get_securities_list(self):
-        expected_sec_list = ['AMZN', 'GOOG', 'TLS.AX']
-
         app = MarketData()
         app.run()
 
-        for sec in expected_sec_list:
-            app.add_security(sec)
-
+        app.add_security('AMZN')
         actual_sec_list = app.get_securities_list()
-        self.assertEqual(actual_sec_list, expected_sec_list)
+        self.assertEqual(actual_sec_list, ['AMZN'])
+
+        app.add_security('GOOG')
+        actual_sec_list = app.get_securities_list()
+        self.assertEqual(actual_sec_list, ['AMZN', 'GOOG'])
 
 if __name__ == '__main__':
     unittest.main()
