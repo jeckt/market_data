@@ -7,9 +7,12 @@ os.chdir((os.path.dirname(inspect.getfile(inspect.currentframe()))))
 import unittest
 from unittest import skip
 from unittest.mock import patch
+import datetime
+from decimal import Decimal
 
 from market_data import MarketData
 from market_data import NotInitialisedError
+from scraper import EquityData
 
 class MarketDataTests(unittest.TestCase):
 
@@ -35,6 +38,8 @@ class MarketDataTests(unittest.TestCase):
         actual_sec_list = app.get_securities_list()
         self.assertEqual(actual_sec_list, ['AMZN', 'GOOG'])
 
+        app.close()
+
     def test_not_initialised_error_after_app_close(self):
         app = MarketData()
         app.run()
@@ -43,6 +48,41 @@ class MarketDataTests(unittest.TestCase):
 
         with self.assertRaises(NotInitialisedError):
             app.add_security('GOOG')
+
+    def test_invalid_ticker_in_get_equity_data(self):
+        self.fail('Not implemented')
+
+    @patch('scraper.Scraper.scrape_equity_data', autospec=True)
+    def test_get_equity_data(self, mock_scraper):
+        app = MarketData()
+        app.run()
+        app.add_security('AMZN')
+
+        # NOTE(steve): it is not market data module's responsibility to
+        # ensure the scrape equity data function works.
+        # It should assume that it returns the correct results
+        data = EquityData()
+        data.open = Decimal('1898.00')
+        data.high = Decimal('1903.79')
+        data.low = Decimal('1856.00')
+        data.close = Decimal('1889.98')
+        data.adj_close = Decimal('1889.98')
+        data.volume = int(5718000)
+
+        mock_scraper.return_value = data
+
+        expected_data = EquityData()
+        expected_data.open = Decimal('1898.00')
+        expected_data.high = Decimal('1903.79')
+        expected_data.low = Decimal('1856.00')
+        expected_data.close = Decimal('1889.98')
+        expected_data.adj_close = Decimal('1889.98')
+        expected_data.volume = int(5718000)
+
+        data = app.get_equity_data('AMZN', datetime.datetime(2019, 5, 10))
+        self.assertEqual(data, expected_data)
+
+        app.close()
 
 if __name__ == '__main__':
     unittest.main()

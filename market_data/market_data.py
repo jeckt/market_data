@@ -1,3 +1,5 @@
+from scraper import Scraper
+
 class MarketData:
 
     init = False
@@ -8,7 +10,9 @@ class MarketData:
     def run(self):
         self.init = True
         self._securities = list()
+        self._scraper = Scraper('yahoo')
 
+    # TODO(steve): should turn this into a decorator
     def _check_initialised(self):
         if not self.init:
             raise NotInitialisedError('Call run method first!')
@@ -20,6 +24,12 @@ class MarketData:
     def get_securities_list(self):
         self._check_initialised()
         return list(self._securities)
+
+    def get_equity_data(self, ticker, dt):
+        self._check_initialised()
+        data = self._scraper.scrape_equity_data(ticker, dt)
+
+        return data
 
     # NOTE(steve): this method will be used to clean up
     # all the dependency e.g. closing of the database

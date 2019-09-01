@@ -48,7 +48,7 @@ class FunctionalTests(unittest.TestCase):
         # Josh proceeds to check what the security price 
         # on the 31 July 2019 is of the stock Carol added
         dt = datetime.datetime(2019, 8, 23)
-        data = app.get_security_data(ticker, dt)
+        data = app.get_equity_data(ticker, dt)
 
         # He then goes to his trusty source, Yahoo to
         # confirm that the security price is indeed correct.
