@@ -4,7 +4,9 @@ import unittest
 from unittest import skip
 import datetime
 from decimal import Decimal
+
 from market_data.market_data import MarketData
+from market_data.scraper import EquityData
 
 class FunctionalTests(unittest.TestCase):
 
@@ -28,6 +30,36 @@ class FunctionalTests(unittest.TestCase):
         # she closes it and gets on with her day
         app.close()
 
+    # TODO(steve): we need another test where the
+    # historical data is not available through the
+    # scraper. Should that be a unit test???
+    def test_get_historical_equity_data_from_app(self):
+        # Josh has heard of this new app from 
+        # Carol and decides to open the app
+        # and play with it.
+        app = MarketData()
+        app.run()
+
+        # Carol told Josh that she has already
+        # added a security into the app
+        ticker = 'AMZN'
+        app.add_security(ticker)
+
+        # Josh proceeds to check what the security price 
+        # on the 31 July 2019 is of the stock Carol added
+        dt = datetime.datetime(2019, 8, 23)
+        data = app.get_security_data(ticker, dt)
+
+        # He then goes to his trusty source, Yahoo to
+        # confirm that the security price is indeed correct.
+        expected_data = EquityData()
+        expected_data.open = Decimal('1898.11')
+        expected_data.high = Decimal('1899.55')
+        expected_data.low = Decimal('1849.44')
+        expected_data.close = Decimal('1866.78')
+        expected_data.adj_close = Decimal('1866.78')
+        expected_data.volume = int(4470700)
+        self.assertEqual(data, expected_data)
 
     # NOTE(steve): user is a machine that runs on a 
     # scheduler and collects the required data this
