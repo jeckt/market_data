@@ -2,31 +2,35 @@
 
 import unittest
 import datetime
+from decimal import Decimal
 from market_data.market_data import MarketData
-
-# NOTE(steve): Other tests I can think of
-# 1. Load app and retreive an fx rate on a given day
-# 2. Load equity price over multiple days
-# 3. Load fx rate over multiple days
 
 class FunctionalTests(unittest.TestCase):
 
-    def test_user_loads_app_and_retreives_equity_price(self):
-        # Jack opens the application
-        md = MarketData()
-        md.run()
+    # NOTE(steve): user is a machine that runs on a 
+    # scheduler and collects the required data this
+    # will be coded into a script
+    def test_update_market_data_in_app(self):
+        # Jarvis (machine) opens up the application
+        app = MarketData()
+        app.run()
 
-        # Jack wants to know to know what the closing price
-        # of his Amazon stock is on the 23rd August 2019
-        dt = datetime.datetime(2019, 8, 23)
-        data = md.get_equity_data('AMZN', dt)
+        # Jarvis gets the list of securities that
+        # he needs to update
+        securities = app.get_securities_list()
 
-        # He verifies that the price is what he remembers it
-        # to be when he checked yesterday.
-        self.assertEqual(data.close, 1768.87)
+        # Jarvis proceeds to update each security
+        # in the list with the most recent available
+        # market data
+        # TODO(steve): mock this so that it always 
+        # returns a valid date for this test case
+        dt = datetime.datetime.today()
+        for sec in securities:
+            app.update_security_data(sec, dt)
 
-        # Happy with the results he closes the app
-        md.close()
+        # Jarvis closes the application once his
+        # job is complete
+        app.close()
 
 if __name__ == '__main__':
     unittest.main()
