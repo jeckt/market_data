@@ -13,10 +13,11 @@ from market_data import NotInitialisedError
 
 class MarketDataTests(unittest.TestCase):
 
-    def test_app_not_initialised_before_use_throws_error(self):
+    def test_app_not_initialised_before_use_raises_error(self):
         app = MarketData()
 
         with self.assertRaises(NotInitialisedError):
+            app.add_security('AMZN')
             sec_list = app.get_securities_list()
 
     # NOTE(steve): Testing two functions instead of each 
@@ -33,6 +34,15 @@ class MarketDataTests(unittest.TestCase):
         app.add_security('GOOG')
         actual_sec_list = app.get_securities_list()
         self.assertEqual(actual_sec_list, ['AMZN', 'GOOG'])
+
+    def test_not_initialised_error_after_app_close(self):
+        app = MarketData()
+        app.run()
+        app.add_security('AMZN')
+        app.close()
+
+        with self.assertRaises(NotInitialisedError):
+            app.add_security('GOOG')
 
 if __name__ == '__main__':
     unittest.main()

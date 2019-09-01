@@ -9,14 +9,23 @@ class MarketData:
         self.init = True
         self._securities = list()
 
-    def add_security(self, ticker):
-        self._securities.append(ticker)
-
-    def get_securities_list(self):
+    def _check_initialised(self):
         if not self.init:
             raise NotInitialisedError('Call run method first!')
 
+    def add_security(self, ticker):
+        self._check_initialised()
+        self._securities.append(ticker)
+
+    def get_securities_list(self):
+        self._check_initialised()
         return list(self._securities)
+
+    # NOTE(steve): this method will be used to clean up
+    # all the dependency e.g. closing of the database
+    # after the app is closed
+    def close(self):
+        self.init = False
 
 class NotInitialisedError(Exception):
     pass
