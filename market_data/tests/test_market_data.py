@@ -49,7 +49,12 @@ class MarketDataTests(unittest.TestCase):
         with self.assertRaises(NotInitialisedError):
             app.add_security('GOOG')
 
+class EquityDataTests(unittest.TestCase):
+
     def test_invalid_ticker_in_get_equity_data(self):
+        self.fail('Not implemented')
+
+    def test_invalid_date_in_get_equity_data(self):
         self.fail('Not implemented')
 
     @patch('scraper.Scraper.scrape_equity_data', autospec=True)

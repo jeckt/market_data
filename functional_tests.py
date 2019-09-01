@@ -45,6 +45,7 @@ class FunctionalTests(unittest.TestCase):
         # Carol told Josh that she has already
         # added a security into the app
         ticker = 'AMZN'
+        dt = datetime.datetime(2019, 7, 31)
         app.add_security(ticker)
 
         # NOTE(steve) patch work so that we don't hit the 
@@ -56,7 +57,18 @@ class FunctionalTests(unittest.TestCase):
 
         # Josh proceeds to check what the security price 
         # on the 31 July 2019 is of the stock Carol added
-        dt = datetime.datetime(2019, 7, 31)
+        # but accidentally enters the wrong ticker name
+        with self.assertRaises(InvalidTickerError):
+            data = app.get_equity_data('AMZNN', dt)
+
+        # He then tries again but with the correct
+        # ticker this time but with the wrong date..
+        # he wants to see into the future!
+        with self.assertRaises(InvalidDateError):
+            data = app.get_equity_data(ticker, datetime.datetime(2020, 7, 31))
+
+        # Third time lucky, he enters in the correct
+        # ticker and date and gets the results!
         data = app.get_equity_data(ticker, dt)
 
         # He then goes to his trusty source, Yahoo to
