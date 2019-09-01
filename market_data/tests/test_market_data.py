@@ -19,11 +19,17 @@ class MarketDataTests(unittest.TestCase):
         with self.assertRaises(NotInitialisedError):
             sec_list = app.get_securities_list()
 
-    def test_get_securities_list(self):
+    # NOTE(steve): Testing two functions instead of each 
+    # individually as individual tests will require
+    # knowledge of the implementation.
+    def test_add_and_get_securities_list(self):
         expected_sec_list = ['AMZN', 'GOOG', 'TLS.AX']
 
         app = MarketData()
         app.run()
+
+        for sec in expected_sec_list:
+            app.add_security(sec)
 
         actual_sec_list = app.get_securities_list()
         self.assertEqual(actual_sec_list, expected_sec_list)
