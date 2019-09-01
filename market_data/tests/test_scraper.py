@@ -26,7 +26,8 @@ class ScraperTests(unittest.TestCase):
 
 class ScraperYahooEquityPricesTests(unittest.TestCase):
 
-    def load_test_data(self):
+    @classmethod
+    def load_test_data(cls):
         test_file = 'amzn_scrape_test_data.html'
         with open(test_file, 'rb') as f:
             data = f.read()

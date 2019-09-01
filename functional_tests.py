@@ -2,6 +2,7 @@
 
 import unittest
 from unittest import skip
+from unittest.mock import patch
 import datetime
 from decimal import Decimal
 
@@ -33,7 +34,8 @@ class FunctionalTests(unittest.TestCase):
     # TODO(steve): we need another test where the
     # historical data is not available through the
     # scraper. Should that be a unit test???
-    def test_get_historical_equity_data_from_app(self):
+    @patch('urllib.request.urlopen', autospec=True)
+    def test_get_historical_equity_data_from_app(self, mock_urlopen):
         # Josh has heard of this new app from 
         # Carol and decides to open the app
         # and play with it.
@@ -45,9 +47,16 @@ class FunctionalTests(unittest.TestCase):
         ticker = 'AMZN'
         app.add_security(ticker)
 
+        # NOTE(steve) patch work so that we don't hit the 
+        # external dependency
+        import market_data.tests.test_scraper as sp
+        load_test_data = sp.ScraperYahooEquityPricesTests.load_test_data
+        mock_urlopen_context = mock_urlopen.return_value.__enter__.return_value
+        mock_urlopen_context.read.return_value = load_test_data()
+
         # Josh proceeds to check what the security price 
         # on the 31 July 2019 is of the stock Carol added
-        dt = datetime.datetime(2019, 8, 23)
+        dt = datetime.datetime(2019, 7, 31)
         data = app.get_equity_data(ticker, dt)
 
         # He then goes to his trusty source, Yahoo to
