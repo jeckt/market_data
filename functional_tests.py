@@ -7,7 +7,8 @@ import datetime
 from decimal import Decimal
 
 from market_data.market_data import MarketData
-from market_data.scraper import EquityData
+from market_data.data import EquityData
+from market_data.data import InvalidTickerError
 
 class FunctionalTests(unittest.TestCase):
 

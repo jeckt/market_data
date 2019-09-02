@@ -12,7 +12,8 @@ from decimal import Decimal
 
 from market_data import MarketData
 from market_data import NotInitialisedError
-from scraper import EquityData
+from data import EquityData
+from data import InvalidTickerError
 
 class MarketDataTests(unittest.TestCase):
 
@@ -51,11 +52,13 @@ class MarketDataTests(unittest.TestCase):
 
 class EquityDataTests(unittest.TestCase):
 
-    def test_invalid_ticker_in_get_equity_data(self):
+    @patch('scraper.Scraper.scrape_equity_data', autospec=True)
+    def test_invalid_ticker_in_get_equity_data(self, mock_scraper):
         app = MarketData()
         app.run()
         app.add_security('AMZN')
 
+        mock_scraper.side_effect = InvalidTickerError
         with self.assertRaises(InvalidTickerError):
             app.get_equity_data('AMZNN', datetime.datetime(2019, 8, 27))
 
