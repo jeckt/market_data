@@ -26,6 +26,9 @@ class Scraper:
         parsed_html = BeautifulSoup(page, features='html.parser')
         data_table = parsed_html.body.find('table',
                             attrs={'data-test':'historical-prices'})
+        if data_table is None:
+            raise InvalidTickerError(ticker)
+
         data_table = data_table.find('tbody')
 
         for row in data_table.children:

@@ -89,7 +89,7 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
 
         mock_urlopen_context = mock_urlopen.return_value.__enter__.return_value
         mock_urlopen_context.status = 200
-        mock_urlopen_context.read.return_value = b'<HTML></HTML>'
+        mock_urlopen_context.read.return_value = b'<HTML><body></body></HTML>'
 
         with self.assertRaises(InvalidTickerError):
             results = scraper.scrape_equity_data(ticker, dt)
