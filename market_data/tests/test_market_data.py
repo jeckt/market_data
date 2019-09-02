@@ -52,7 +52,12 @@ class MarketDataTests(unittest.TestCase):
 class EquityDataTests(unittest.TestCase):
 
     def test_invalid_ticker_in_get_equity_data(self):
-        self.fail('Not implemented')
+        app = MarketData()
+        app.run()
+        app.add_security('AMZN')
+
+        with self.assertRaises(InvalidTickerError):
+            app.get_equity_data('AMZNN', datetime.datetime(2019, 8, 27))
 
     def test_invalid_date_in_get_equity_data(self):
         self.fail('Not implemented')

@@ -10,8 +10,8 @@ from unittest.mock import patch
 import datetime
 from decimal import Decimal
 
-from scraper import Scraper, EquityData
-from scraper import InvalidSourceError, InvalidTickerError, InvalidDateError
+from scraper import Scraper, InvalidSourceError
+from data import EquityData, InvalidTickerError, InvalidDateError
 
 class ScraperTests(unittest.TestCase):
 
