@@ -1,6 +1,5 @@
 import datetime
 import urllib.request
-from decimal import Decimal
 from bs4 import BeautifulSoup
 
 from data import EquityData
