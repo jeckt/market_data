@@ -81,6 +81,18 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
         with self.assertRaises(InvalidTickerError):
             results = scraper.scrape_equity_data(ticker, dt)
 
+    @patch('urllib.request.urlopen', autospec=True)
+    def test_scrape_page_found_but_invalid_ticker(self, mock_urlopen):
+        ticker = 'AMZNN'
+        dt = datetime.datetime(2019, 8, 23)
+        scraper = Scraper('yahoo')
+
+        mock_urlopen_context = mock_urlopen.return_value.__enter__.return_value
+        mock_urlopen_context.status = 200
+        mock_urlopen_context.read.return_value = b'<HTML></HTML>'
+
+        with self.assertRaises(InvalidTickerError):
+            results = scraper.scrape_equity_data(ticker, dt)
 
 # TODO(steve): test to make sure the decimal representations
 # that are created are correct. e.g. Decimal(1793.03) != 1793.03
