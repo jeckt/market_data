@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 import os
+import sys
 import inspect
-os.chdir((os.path.dirname(inspect.getfile(inspect.currentframe()))))
+file_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
+sys.path.insert(0, os.path.split(file_path)[0])
 
 import unittest
 from unittest import skip
@@ -10,8 +12,8 @@ from unittest.mock import patch
 import datetime
 from decimal import Decimal
 
-from scraper import Scraper, InvalidSourceError
-from data import EquityData, InvalidTickerError, InvalidDateError
+from market_data.scraper import Scraper, InvalidSourceError
+from market_data.data import EquityData, InvalidTickerError, InvalidDateError
 
 class ScraperTests(unittest.TestCase):
 
@@ -28,7 +30,7 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
 
     @classmethod
     def load_test_data(cls):
-        test_file = 'amzn_scrape_test_data.html'
+        test_file = r'market_data/tests/amzn_scrape_test_data.html'
         with open(test_file, 'rb') as f:
             data = f.read()
 

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 import os
+import sys
 import inspect
-os.chdir((os.path.dirname(inspect.getfile(inspect.currentframe()))))
+file_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
+sys.path.insert(0, os.path.split(file_path)[0])
 
 import unittest
 from unittest import skip
@@ -10,10 +12,10 @@ from unittest.mock import patch
 import datetime
 from decimal import Decimal
 
-from market_data import MarketData
-from market_data import NotInitialisedError
-from data import EquityData
-from data import InvalidTickerError
+from market_data.market_data import MarketData
+from market_data.market_data import NotInitialisedError
+from market_data.data import EquityData
+from market_data.data import InvalidTickerError
 
 class MarketDataTests(unittest.TestCase):
 
@@ -52,7 +54,7 @@ class MarketDataTests(unittest.TestCase):
 
 class EquityDataTests(unittest.TestCase):
 
-    @patch('scraper.Scraper.scrape_equity_data', autospec=True)
+    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_invalid_ticker_in_get_equity_data(self, mock_scraper):
         app = MarketData()
         app.run()
@@ -65,7 +67,7 @@ class EquityDataTests(unittest.TestCase):
     def test_invalid_date_in_get_equity_data(self):
         self.fail('Not implemented')
 
-    @patch('scraper.Scraper.scrape_equity_data', autospec=True)
+    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_get_equity_data(self, mock_scraper):
         app = MarketData()
         app.run()

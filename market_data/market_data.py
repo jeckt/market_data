@@ -1,4 +1,4 @@
-from scraper import Scraper
+from market_data.scraper import Scraper
 
 class MarketData:
 

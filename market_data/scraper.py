@@ -2,8 +2,8 @@ import datetime
 import urllib.request
 from bs4 import BeautifulSoup
 
-from data import EquityData
-from data import InvalidTickerError, InvalidDateError
+from market_data.data import EquityData
+from market_data.data import InvalidTickerError, InvalidDateError
 
 class Scraper:
 

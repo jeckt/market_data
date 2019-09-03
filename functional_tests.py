@@ -49,13 +49,6 @@ class FunctionalTests(unittest.TestCase):
         dt = datetime.datetime(2019, 7, 31)
         app.add_security(ticker)
 
-        # NOTE(steve) patch work so that we don't hit the 
-        # external dependency
-        import market_data.tests.test_scraper as sp
-        load_test_data = sp.ScraperYahooEquityPricesTests.load_test_data
-        mock_urlopen_context = mock_urlopen.return_value.__enter__.return_value
-        mock_urlopen_context.read.return_value = load_test_data()
-
         # Josh proceeds to check what the security price 
         # on the 31 July 2019 is of the stock Carol added
         # but accidentally enters the wrong ticker name
@@ -67,6 +60,13 @@ class FunctionalTests(unittest.TestCase):
         # he wants to see into the future!
         with self.assertRaises(InvalidDateError):
             data = app.get_equity_data(ticker, datetime.datetime(2020, 7, 31))
+
+        # NOTE(steve) patch work so that we don't hit the 
+        # external dependency
+        import market_data.tests.test_scraper as sp
+        load_test_data = sp.ScraperYahooEquityPricesTests.load_test_data
+        mock_urlopen_context = mock_urlopen.return_value.__enter__.return_value
+        mock_urlopen_context.read.return_value = load_test_data()
 
         # Third time lucky, he enters in the correct
         # ticker and date and gets the results!
