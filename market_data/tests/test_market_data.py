@@ -54,11 +54,19 @@ class MarketDataTests(unittest.TestCase):
 
 class EquityDataTests(unittest.TestCase):
 
+    def test_ticker_not_in_list(self):
+        app = MarketData()
+        app.run()
+
+        # AMZN is a valid ticker
+        with self.assertRaises(InvalidTickerError):
+            app.get_equity_data('AMZN', datetime.datetime(2019, 8, 27))
+
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_invalid_ticker_in_get_equity_data(self, mock_scraper):
         app = MarketData()
         app.run()
-        app.add_security('AMZN')
+        app.add_security('AMZNN')
 
         mock_scraper.side_effect = InvalidTickerError
         with self.assertRaises(InvalidTickerError):

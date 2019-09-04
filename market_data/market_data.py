@@ -1,4 +1,5 @@
 from market_data.scraper import Scraper
+from market_data.data import InvalidTickerError
 
 class MarketData:
 
@@ -27,7 +28,10 @@ class MarketData:
 
     def get_equity_data(self, ticker, dt):
         self._check_initialised()
-        data = self._scraper.scrape_equity_data(ticker, dt)
+        if ticker in self._securities:
+            data = self._scraper.scrape_equity_data(ticker, dt)
+        else:
+            raise InvalidTickerError("ticker")
 
         return data
 

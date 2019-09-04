@@ -78,7 +78,8 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
         dt = datetime.datetime(2019, 8, 23)
         scraper = Scraper('yahoo')
 
-        mock_urlopen.return_value.__enter__.return_value.status = 404
+        mock_urlopen_context = mock_urlopen.return_value.__enter__.return_value
+        mock_urlopen_context.read.return_value = b''
 
         with self.assertRaises(InvalidTickerError):
             results = scraper.scrape_equity_data(ticker, dt)
