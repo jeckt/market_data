@@ -15,7 +15,7 @@ from decimal import Decimal
 from market_data.market_data import MarketData
 from market_data.market_data import NotInitialisedError
 from market_data.data import EquityData
-from market_data.data import InvalidTickerError
+from market_data.data import InvalidTickerError, InvalidDateError
 
 class MarketDataTests(unittest.TestCase):
 
@@ -62,7 +62,7 @@ class EquityDataTests(unittest.TestCase):
         self.app.close()
 
     def test_ticker_not_in_list(self):
-        # AMZN is a valid ticker
+        # NOTE(steve): AMZN is a valid stock ticker but is not in the list
         with self.assertRaises(InvalidTickerError):
             self.app.get_equity_data('AMZN', datetime.datetime(2019, 8, 27))
 
@@ -74,8 +74,13 @@ class EquityDataTests(unittest.TestCase):
         with self.assertRaises(InvalidTickerError):
             self.app.get_equity_data('AMZNN', datetime.datetime(2019, 8, 27))
 
-    def test_invalid_date_in_get_equity_data(self):
-        self.fail('Not implemented')
+    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    def test_invalid_date_in_get_equity_data(self, mock_scraper):
+        self.app.add_security('AMZN')
+
+        mock_scraper.side_effect = InvalidDateError
+        with self.assertRaises(InvalidDateError):
+            self.app.get_equity_data('AMZN', datetime.datetime(2017, 8, 25))
 
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_get_equity_data(self, mock_scraper):
