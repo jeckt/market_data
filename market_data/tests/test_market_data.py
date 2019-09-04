@@ -54,32 +54,32 @@ class MarketDataTests(unittest.TestCase):
 
 class EquityDataTests(unittest.TestCase):
 
-    def test_ticker_not_in_list(self):
-        app = MarketData()
-        app.run()
+    def setUp(self):
+        self.app = MarketData()
+        self.app.run()
 
+    def tearDown(self):
+        self.app.close()
+
+    def test_ticker_not_in_list(self):
         # AMZN is a valid ticker
         with self.assertRaises(InvalidTickerError):
-            app.get_equity_data('AMZN', datetime.datetime(2019, 8, 27))
+            self.app.get_equity_data('AMZN', datetime.datetime(2019, 8, 27))
 
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_invalid_ticker_in_get_equity_data(self, mock_scraper):
-        app = MarketData()
-        app.run()
-        app.add_security('AMZNN')
+        self.app.add_security('AMZNN')
 
         mock_scraper.side_effect = InvalidTickerError
         with self.assertRaises(InvalidTickerError):
-            app.get_equity_data('AMZNN', datetime.datetime(2019, 8, 27))
+            self.app.get_equity_data('AMZNN', datetime.datetime(2019, 8, 27))
 
     def test_invalid_date_in_get_equity_data(self):
         self.fail('Not implemented')
 
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_get_equity_data(self, mock_scraper):
-        app = MarketData()
-        app.run()
-        app.add_security('AMZN')
+        self.app.add_security('AMZN')
 
         # NOTE(steve): it is not market data module's responsibility to
         # ensure the scrape equity data function works.
@@ -102,10 +102,8 @@ class EquityDataTests(unittest.TestCase):
         expected_data.adj_close = Decimal('1889.98')
         expected_data.volume = int(5718000)
 
-        data = app.get_equity_data('AMZN', datetime.datetime(2019, 5, 10))
+        data = self.app.get_equity_data('AMZN', datetime.datetime(2019, 5, 10))
         self.assertEqual(data, expected_data)
-
-        app.close()
 
 if __name__ == '__main__':
     unittest.main()
