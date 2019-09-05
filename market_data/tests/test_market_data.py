@@ -52,6 +52,21 @@ class MarketDataTests(unittest.TestCase):
         with self.assertRaises(NotInitialisedError):
             app.add_security('GOOG')
 
+class MarketDataPersistentStorageTests(unittest.TestCase):
+
+    def test_added_security_is_in_list_on_reopen(self):
+        app = MarketData()
+        app.run()
+        ticker = 'TLS'
+        app.add_security(ticker)
+        app.close()
+
+        new_app = MarketData()
+        new_app.run()
+        tickers = new_app.get_securities_list()
+        new_app.close()
+        self.assertEqual([ticker], tickers)
+
 class EquityDataTests(unittest.TestCase):
 
     def setUp(self):
