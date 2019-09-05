@@ -2,7 +2,7 @@
 
 import unittest
 from unittest import skip
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 import datetime
 from decimal import Decimal
 
@@ -11,6 +11,50 @@ from market_data.data import EquityData
 from market_data.data import InvalidTickerError, InvalidDateError
 
 class FunctionalTests(unittest.TestCase):
+
+    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    def test_can_retreive_equity_data_on_app_reopen(self, mock_scrape):
+        # Carol opens up the application and add
+        # adds Amazon (AMZN) to the list of
+        # securities she wants to start tracking
+        # and then closes the app.
+        app = MarketData()
+        app.run()
+        ticker = 'AMZN'
+        app.add_security(ticker)
+        app.close()
+
+        # Jarvis opens up the application and
+        # goes through the list of securities
+        # and updates them for the latest
+        # market data
+        app2 = MarketData()
+        app2.run()
+        tickers = app2.get_securities_list()
+        self.assertEqual([ticker], tickers)
+
+        expected_data = EquityData()
+        expected_data.open = Decimal('1898.11')
+        expected_data.high = Decimal('1899.55')
+        expected_data.low = Decimal('1849.44')
+        expected_data.close = Decimal('1866.78')
+        expected_data.adj_close = Decimal('1866.78')
+        expected_data.volume = int(4470700)
+        mock_scrape.return_value = expected_data
+
+        dt = datetime.datetime(2019, 8, 27)
+        for ticker in tickers:
+            app2.update_market_data(ticker, dt)
+
+        app2.close()
+
+        # Josh now opens the app to checks today's closing
+        # price of Amazon after he comes back from work
+        app3 = MarketData()
+        app3.run()
+        actual_data = app3.get_equity_data(ticker, dt)
+        self.assertEqual(expected_data, actual_data)
+        app3.close()
 
     def test_add_security_into_app(self):
         # Carol opens up the application
@@ -81,40 +125,6 @@ class FunctionalTests(unittest.TestCase):
         expected_data.adj_close = Decimal('1866.78')
         expected_data.volume = int(4470700)
         self.assertEqual(data, expected_data)
-
-    # NOTE(steve): user is a machine that runs on a 
-    # scheduler and collects the required data this
-    # will be coded into a script
-    # TODO(steve): a terrible functional test as
-    # it does not actually test that the data
-    # is correct after executing functions!!!
-    @skip
-    def test_update_market_data_in_app(self):
-        # Jarvis (machine) opens up the application
-        app = MarketData()
-        app.run()
-
-        # Jarvis gets the list of securities that
-        # he needs to update
-        securities = app.get_securities_list()
-
-        # He checks that the securities in the
-        # list are what he expects
-        expected_sec_list = ['AMZN', 'TLS.AX']
-        self.assertEqual(securities, expected_sec_list)
-
-        # Jarvis proceeds to update each security
-        # in the list with the most recent available
-        # market data
-        # TODO(steve): mock this so that it always 
-        # returns a valid date for this test case
-        dt = datetime.datetime.today()
-        for sec in securities:
-            app.update_security_data(sec, dt)
-
-        # Jarvis closes the application once his
-        # job is complete
-        app.close()
 
 if __name__ == '__main__':
     unittest.main()
