@@ -1,3 +1,5 @@
+import os
+import json
 from market_data.scraper import Scraper
 from market_data.data import InvalidTickerError
 
@@ -8,10 +10,20 @@ class MarketData:
     # NOTE(steve): this method will be used to initialise all 
     # the dependencies before the user can use the application
     # this is where we will throw dependency errors as well
-    def run(self):
+    def run(self, database=None):
         self.init = True
-        self._securities = list()
         self._scraper = Scraper('yahoo')
+
+        if not database:
+            database = 'prod_data.txt'
+            with open(database, 'w') as db:
+                json.dump(list(), db)
+
+        try:
+            with open(database, 'r') as db:
+                self._securities = json.load(db)
+        except FileNotFoundError:
+            raise DatabaseNotFoundError(database)
 
     # TODO(steve): should turn this into a decorator
     def _check_initialised(self):
@@ -42,4 +54,7 @@ class MarketData:
         self.init = False
 
 class NotInitialisedError(Exception):
+    pass
+
+class DatabaseNotFoundError(Exception):
     pass

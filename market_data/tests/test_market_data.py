@@ -13,7 +13,7 @@ import datetime
 from decimal import Decimal
 
 from market_data.market_data import MarketData
-from market_data.market_data import NotInitialisedError
+from market_data.market_data import NotInitialisedError, DatabaseNotFoundError
 from market_data.data import EquityData
 from market_data.data import InvalidTickerError, InvalidDateError
 
@@ -66,6 +66,17 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
         tickers = new_app.get_securities_list()
         new_app.close()
         self.assertEqual([ticker], tickers)
+
+    def test_create_prod_database_by_default(self):
+        app = MarketData()
+        app.run()
+        self.assertEqual([], app.get_securities_list())
+        app.close()
+
+    def test_raise_database_not_found_error(self):
+        app = MarketData()
+        with self.assertRaises(DatabaseNotFoundError):
+            app.run(database='db.txt')
 
 class EquityDataTests(unittest.TestCase):
 
