@@ -14,16 +14,23 @@ class MarketData:
         self.init = True
         self._scraper = Scraper('yahoo')
 
+        # NOTE(steve): Point to production database
+        # if no databased parameter is specified
+        # and only create if production database
+        # is not available
         if not database:
-            database = 'prod_data.txt'
-            with open(database, 'w') as db:
-                json.dump(list(), db)
+            database = 'productiondb.txt'
+            if not os.path.isfile(database):
+                with open(database, 'w') as db:
+                    json.dump(list(), db)
 
+        self._database = database
         try:
-            with open(database, 'r') as db:
+            with open(self._database, 'r') as db:
                 self._securities = json.load(db)
         except FileNotFoundError:
-            raise DatabaseNotFoundError(database)
+            raise DatabaseNotFoundError(self._database)
+
 
     # TODO(steve): should turn this into a decorator
     def _check_initialised(self):
@@ -33,6 +40,8 @@ class MarketData:
     def add_security(self, ticker):
         self._check_initialised()
         self._securities.append(ticker)
+        with open(self._database, 'w') as db:
+            json.dump(self._securities, db)
 
     def get_securities_list(self):
         self._check_initialised()

@@ -12,6 +12,17 @@ from market_data.data import InvalidTickerError, InvalidDateError
 
 class FunctionalTests(unittest.TestCase):
 
+    def setUp(self):
+        self.database = 'testdb.txt'
+        with open(self.database, 'w') as db:
+            import json
+            json.dump(list(), db)
+
+    def tearDown(self):
+        import os
+        os.remove(self.database)
+
+
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_can_retreive_equity_data_on_app_reopen(self, mock_scrape):
         # Carol opens up the application and add
@@ -19,7 +30,7 @@ class FunctionalTests(unittest.TestCase):
         # securities she wants to start tracking
         # and then closes the app.
         app = MarketData()
-        app.run()
+        app.run(database=self.database)
         ticker = 'AMZN'
         app.add_security(ticker)
         app.close()
@@ -29,7 +40,7 @@ class FunctionalTests(unittest.TestCase):
         # and updates them for the latest
         # market data
         app2 = MarketData()
-        app2.run()
+        app2.run(database=self.database)
         tickers = app2.get_securities_list()
         self.assertEqual([ticker], tickers)
 
@@ -51,7 +62,7 @@ class FunctionalTests(unittest.TestCase):
         # Josh now opens the app to checks today's closing
         # price of Amazon after he comes back from work
         app3 = MarketData()
-        app3.run()
+        app3.run(database=self.database)
         actual_data = app3.get_equity_data(ticker, dt)
         self.assertEqual(expected_data, actual_data)
         app3.close()
@@ -59,7 +70,7 @@ class FunctionalTests(unittest.TestCase):
     def test_add_security_into_app(self):
         # Carol opens up the application
         app = MarketData()
-        app.run()
+        app.run(database=self.database)
 
         # Carol adds Amazon(AMZN) to the app as
         # she would like to start tracking the
@@ -84,7 +95,7 @@ class FunctionalTests(unittest.TestCase):
         # Carol and decides to open the app
         # and play with it.
         app = MarketData()
-        app.run()
+        app.run(database=self.database)
 
         # Carol told Josh that she has already
         # added a security into the app

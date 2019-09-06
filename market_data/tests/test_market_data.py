@@ -19,6 +19,16 @@ from market_data.data import InvalidTickerError, InvalidDateError
 
 class MarketDataTests(unittest.TestCase):
 
+    def setUp(self):
+        self.database = 'testdb.txt'
+        with open(self.database, 'w') as db:
+            import json
+            json.dump(list(), db)
+
+    def tearDown(self):
+        import os
+        os.remove(self.database)
+
     def test_app_not_initialised_before_use_raises_error(self):
         app = MarketData()
 
@@ -31,7 +41,7 @@ class MarketDataTests(unittest.TestCase):
     # knowledge of the implementation.
     def test_add_and_get_securities_list(self):
         app = MarketData()
-        app.run()
+        app.run(database=self.database)
 
         app.add_security('AMZN')
         actual_sec_list = app.get_securities_list()
@@ -54,22 +64,32 @@ class MarketDataTests(unittest.TestCase):
 
 class MarketDataPersistentStorageTests(unittest.TestCase):
 
+    def setUp(self):
+        self.database = 'testdb.txt'
+        with open(self.database, 'w') as db:
+            import json
+            json.dump(list(), db)
+
+    def tearDown(self):
+        import os
+        os.remove(self.database)
+
     def test_added_security_is_in_list_on_reopen(self):
         app = MarketData()
-        app.run()
+        app.run(database=self.database)
         ticker = 'TLS'
         app.add_security(ticker)
         app.close()
 
         new_app = MarketData()
-        new_app.run()
+        new_app.run(database=self.database)
         tickers = new_app.get_securities_list()
         new_app.close()
         self.assertEqual([ticker], tickers)
 
-    def test_create_prod_database_by_default(self):
+    def test_create_production_database_by_default(self):
         app = MarketData()
-        app.run()
+        app.run(database=self.database)
         self.assertEqual([], app.get_securities_list())
         app.close()
 
@@ -82,10 +102,18 @@ class EquityDataTests(unittest.TestCase):
 
     def setUp(self):
         self.app = MarketData()
-        self.app.run()
+        self.database = 'testdb.txt'
+        with open(self.database, 'w') as db:
+            import json
+            json.dump(list(), db)
+
+        self.app.run(database=self.database)
 
     def tearDown(self):
         self.app.close()
+
+        import os
+        os.remove(self.database)
 
     def test_ticker_not_in_list(self):
         # NOTE(steve): AMZN is a valid stock ticker but is not in the list
