@@ -9,17 +9,17 @@ from decimal import Decimal
 from market_data.market_data import MarketData
 from market_data.data import EquityData
 from market_data.data import InvalidTickerError, InvalidDateError
-from market_data.data_adaptor import DataAdaptor
+from market_data.data_adapter import DataAdapter
 
 class FunctionalTests(unittest.TestCase):
 
     def setUp(self):
-        self.database = DataAdaptor.test_database
-        DataAdaptor.create_test_database()
+        self.database = DataAdapter.test_database
+        DataAdapter.create_test_database()
 
     def tearDown(self):
         try:
-            DataAdaptor.delete_test_database()
+            DataAdapter.delete_test_database()
         except:
             pass
 

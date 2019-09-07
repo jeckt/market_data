@@ -16,20 +16,20 @@ from market_data.market_data import MarketData
 from market_data.market_data import NotInitialisedError
 from market_data.data import EquityData
 from market_data.data import InvalidTickerError, InvalidDateError
-from market_data.data_adaptor import DataAdaptor, DatabaseNotFoundError
+from market_data.data_adapter import DataAdapter, DatabaseNotFoundError
 
 class MarketDataTests(unittest.TestCase):
 
     def setUp(self):
-        self.database = DataAdaptor.test_database
-        DataAdaptor.create_test_database()
+        self.database = DataAdapter.test_database
+        DataAdapter.create_test_database()
         self.app = MarketData()
         self.app.run(database=self.database)
 
     def tearDown(self):
         self.app.close()
         try:
-            DataAdaptor.delete_test_database()
+            DataAdapter.delete_test_database()
         except:
             pass
 
@@ -62,12 +62,12 @@ class MarketDataTests(unittest.TestCase):
 class MarketDataPersistentStorageTests(unittest.TestCase):
 
     def setUp(self):
-        self.database = DataAdaptor.test_database
-        DataAdaptor.create_test_database()
+        self.database = DataAdapter.test_database
+        DataAdapter.create_test_database()
 
     def tearDown(self):
         try:
-            DataAdaptor.delete_test_database()
+            DataAdapter.delete_test_database()
         except:
             pass
 
@@ -98,15 +98,15 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
 class EquityDataTests(unittest.TestCase):
 
     def setUp(self):
-        self.database = DataAdaptor.test_database
-        DataAdaptor.create_test_database()
+        self.database = DataAdapter.test_database
+        DataAdapter.create_test_database()
         self.app = MarketData()
         self.app.run(database=self.database)
 
     def tearDown(self):
         self.app.close()
         try:
-            DataAdaptor.delete_test_database()
+            DataAdapter.delete_test_database()
         except:
             pass
 

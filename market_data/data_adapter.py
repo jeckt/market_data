@@ -1,7 +1,7 @@
 import os
 import json
 
-class DataAdaptor:
+class DataAdapter:
 
     test_database = 'testdb.txt'
 
