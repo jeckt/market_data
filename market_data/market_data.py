@@ -2,6 +2,7 @@ import os
 import json
 from market_data.scraper import Scraper
 from market_data.data import InvalidTickerError
+from market_data.data_adaptor import DatabaseNotFoundError
 
 class MarketData:
 
@@ -63,7 +64,4 @@ class MarketData:
         self.init = False
 
 class NotInitialisedError(Exception):
-    pass
-
-class DatabaseNotFoundError(Exception):
     pass

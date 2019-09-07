@@ -13,21 +13,25 @@ import datetime
 from decimal import Decimal
 
 from market_data.market_data import MarketData
-from market_data.market_data import NotInitialisedError, DatabaseNotFoundError
+from market_data.market_data import NotInitialisedError
 from market_data.data import EquityData
 from market_data.data import InvalidTickerError, InvalidDateError
+from market_data.data_adaptor import DataAdaptor, DatabaseNotFoundError
 
 class MarketDataTests(unittest.TestCase):
 
     def setUp(self):
-        self.database = 'testdb.txt'
-        with open(self.database, 'w') as db:
-            import json
-            json.dump(list(), db)
+        self.database = DataAdaptor.test_database
+        DataAdaptor.create_test_database()
+        self.app = MarketData()
+        self.app.run(database=self.database)
 
     def tearDown(self):
-        import os
-        os.remove(self.database)
+        self.app.close()
+        try:
+            DataAdaptor.delete_test_database()
+        except:
+            pass
 
     def test_app_not_initialised_before_use_raises_error(self):
         app = MarketData()
@@ -40,39 +44,32 @@ class MarketDataTests(unittest.TestCase):
     # individually as individual tests will require
     # knowledge of the implementation.
     def test_add_and_get_securities_list(self):
-        app = MarketData()
-        app.run(database=self.database)
-
-        app.add_security('AMZN')
-        actual_sec_list = app.get_securities_list()
+        self.app.add_security('AMZN')
+        actual_sec_list = self.app.get_securities_list()
         self.assertEqual(actual_sec_list, ['AMZN'])
 
-        app.add_security('GOOG')
-        actual_sec_list = app.get_securities_list()
+        self.app.add_security('GOOG')
+        actual_sec_list = self.app.get_securities_list()
         self.assertEqual(actual_sec_list, ['AMZN', 'GOOG'])
 
-        app.close()
-
     def test_not_initialised_error_after_app_close(self):
-        app = MarketData()
-        app.run()
-        app.add_security('AMZN')
-        app.close()
+        self.app.add_security('AMZN')
+        self.app.close()
 
         with self.assertRaises(NotInitialisedError):
-            app.add_security('GOOG')
+            self.app.add_security('GOOG')
 
 class MarketDataPersistentStorageTests(unittest.TestCase):
 
     def setUp(self):
-        self.database = 'testdb.txt'
-        with open(self.database, 'w') as db:
-            import json
-            json.dump(list(), db)
+        self.database = DataAdaptor.test_database
+        DataAdaptor.create_test_database()
 
     def tearDown(self):
-        import os
-        os.remove(self.database)
+        try:
+            DataAdaptor.delete_test_database()
+        except:
+            pass
 
     def test_added_security_is_in_list_on_reopen(self):
         app = MarketData()
@@ -101,19 +98,17 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
 class EquityDataTests(unittest.TestCase):
 
     def setUp(self):
+        self.database = DataAdaptor.test_database
+        DataAdaptor.create_test_database()
         self.app = MarketData()
-        self.database = 'testdb.txt'
-        with open(self.database, 'w') as db:
-            import json
-            json.dump(list(), db)
-
         self.app.run(database=self.database)
 
     def tearDown(self):
         self.app.close()
-
-        import os
-        os.remove(self.database)
+        try:
+            DataAdaptor.delete_test_database()
+        except:
+            pass
 
     def test_ticker_not_in_list(self):
         # NOTE(steve): AMZN is a valid stock ticker but is not in the list

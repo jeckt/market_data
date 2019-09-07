@@ -9,19 +9,19 @@ from decimal import Decimal
 from market_data.market_data import MarketData
 from market_data.data import EquityData
 from market_data.data import InvalidTickerError, InvalidDateError
+from market_data.data_adaptor import DataAdaptor
 
 class FunctionalTests(unittest.TestCase):
 
     def setUp(self):
-        self.database = 'testdb.txt'
-        with open(self.database, 'w') as db:
-            import json
-            json.dump(list(), db)
+        self.database = DataAdaptor.test_database
+        DataAdaptor.create_test_database()
 
     def tearDown(self):
-        import os
-        os.remove(self.database)
-
+        try:
+            DataAdaptor.delete_test_database()
+        except:
+            pass
 
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_can_retreive_equity_data_on_app_reopen(self, mock_scrape):
