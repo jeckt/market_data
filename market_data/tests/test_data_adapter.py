@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.split(os.path.split(file_path)[0])[0])
 import unittest
 from unittest import skip
 import datetime
-from market_data.data_adapter import DataAdapter
+from market_data.data_adapter import DataAdapter, TextDataModel
 from market_data.data_adapter import DatabaseExistsError, DatabaseNotFoundError
 from market_data.data import InvalidTickerError
 from market_data.tests.utils import get_expected_equity_data
@@ -144,6 +144,26 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
     @skip
     def test_get_equity_data_for_invalid_date_raises_error(self):
         self.fail("NOT IMPLEMENTED")
+
+class TextDataModelTests(unittest.TestCase):
+
+    def test_to_dict(self):
+        data = TextDataModel()
+        data.securities = ['AMZN', 'GOOG', 'TLS.AX']
+        data.equity_data = get_expected_equity_data()
+
+        dict_data = data.to_json()
+
+        expected_dict_data = {
+            'securities': ['AMZN', 'GOOG', 'TLS.AX'],
+            'equity_data': get_expected_equity_data()
+        }
+
+        self.assertEqual(dict_data, expected_dict_data)
+        self.fail("Need to convert equity data to dict")
+
+    def test_from_dict(self):
+        self.fail("NOT IMPLEMENTED!")
 
 if __name__ == '__main__':
     unittest.main()
