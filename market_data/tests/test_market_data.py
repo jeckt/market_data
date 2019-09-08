@@ -49,8 +49,8 @@ class MarketDataTests(unittest.TestCase):
         self.assertEqual(actual_sec_list, ['AMZN'])
 
         self.app.add_security('GOOG')
-        actual_sec_list = self.app.get_securities_list()
-        self.assertEqual(actual_sec_list, ['AMZN', 'GOOG'])
+        actual_sec_list = set(self.app.get_securities_list())
+        self.assertEqual(actual_sec_list, set(['AMZN', 'GOOG']))
 
     def test_not_initialised_error_after_app_close(self):
         self.app.add_security('AMZN')
