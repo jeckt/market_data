@@ -95,6 +95,13 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
         with self.assertRaises(DatabaseNotFoundError):
             app.run(database='db.txt')
 
+    @patch('market_data.data_adapter.DataAdapter.close', autospec=True)
+    def test_data_adaptor_closed_on_app_close(self, mock_close):
+        app = MarketData()
+        app.run(database=self.database)
+        app.close()
+        mock_close.assert_called_once()
+
 class EquityDataTests(unittest.TestCase):
 
     def setUp(self):
