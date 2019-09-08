@@ -31,8 +31,9 @@ class FunctionalTests(unittest.TestCase):
         # and then closes the app.
         app = MarketData()
         app.run(database=self.database)
-        ticker = 'AMZN'
-        app.add_security(ticker)
+        new_tickers = ['AMZN', 'TLS.AX']
+        for ticker in new_tickers:
+            app.add_security(ticker)
         app.close()
 
         # Jarvis opens up the application and
@@ -42,7 +43,7 @@ class FunctionalTests(unittest.TestCase):
         app2 = MarketData()
         app2.run(database=self.database)
         tickers = app2.get_securities_list()
-        self.assertEqual([ticker], tickers)
+        self.assertEqual(set(new_tickers), set(tickers))
 
         expected_data = EquityData()
         expected_data.open = Decimal('1898.11')
@@ -63,7 +64,7 @@ class FunctionalTests(unittest.TestCase):
         # price of Amazon after he comes back from work
         app3 = MarketData()
         app3.run(database=self.database)
-        actual_data = app3.get_equity_data(ticker, dt)
+        actual_data = app3.get_equity_data('AMZN', dt)
         self.assertEqual(expected_data, actual_data)
         app3.close()
 
