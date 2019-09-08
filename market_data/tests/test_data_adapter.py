@@ -93,7 +93,26 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
         self.database.insert_securities(new_tickers)
 
         tickers = self.database.get_securities_list()
-        self.assertEqual(new_tickers, tickers)
+        self.assertEqual(set(new_tickers), set(tickers))
+
+    def test_insert_securities_duplicate_securities_inserted(self):
+        tickers = self.database.get_securities_list()
+        self.assertEqual([], tickers)
+        new_tickers = ['AMZN', 'TLS.AX', 'AMZN']
+        expected_tickers = ['AMZN', 'TLS.AX']
+
+        self.database.insert_securities(new_tickers)
+
+        tickers = self.database.get_securities_list()
+        self.assertEqual(set(expected_tickers), set(tickers))
+
+        # NOTE(steve): try to add an existing ticker
+        new_tickers = ['TLS.AX']
+
+        self.database.insert_securities(new_tickers)
+
+        tickers = self.database.get_securities_list()
+        self.assertEqual(set(expected_tickers), set(tickers))
 
 if __name__ == '__main__':
     unittest.main()
