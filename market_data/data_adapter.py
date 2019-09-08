@@ -1,6 +1,8 @@
 import os
 import json
 
+from market_data.data import InvalidTickerError
+
 # TODO(steve): should we turn the DataAdapter into a 
 # abstract class to provide an interface for the rest
 # of the app??
@@ -62,6 +64,9 @@ class DataAdapter:
         securities += securities_to_add
         with open(self.conn_string, 'w') as db:
             json.dump(list(set(securities)), db)
+
+    def update_market_data(self, security, equity_data):
+        raise InvalidTickerError
 
 class DatabaseExistsError(Exception):
     pass

@@ -8,8 +8,11 @@ sys.path.insert(0, os.path.split(os.path.split(file_path)[0])[0])
 
 import unittest
 from unittest import skip
+import datetime
 from market_data.data_adapter import DataAdapter
 from market_data.data_adapter import DatabaseExistsError, DatabaseNotFoundError
+from market_data.data import InvalidTickerError
+from market_data.tests.utils import get_expected_equity_data
 
 class DataAdapterTestDatabaseTests(unittest.TestCase):
 
@@ -113,6 +116,25 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
 
         tickers = self.database.get_securities_list()
         self.assertEqual(set(expected_tickers), set(tickers))
+
+    def test_update_equity_data_for_security_not_in_list_raises_error(self):
+        ticker = 'AMZN'
+        with self.assertRaises(InvalidTickerError):
+            self.database.update_market_data(ticker, None)
+
+    def test_update_equity_data(self):
+        ticker = 'AMZN'
+        self.database.insert_securities([ticker])
+
+        dt = datetime.datetime(2019, 8, 27)
+        expected_data = get_expected_equity_data()
+        self.database.update_market_data(ticker, (dt, expected_data))
+
+        actual_data = self.database.get_equity_data(ticker, dt)
+        self.assertEqual(expected_data, actual_data)
+
+    def test_get_equity_data_after_multiple_data_updates(self):
+        self.fail("NOT IMPLEMENTED")
 
 if __name__ == '__main__':
     unittest.main()

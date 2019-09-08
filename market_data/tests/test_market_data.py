@@ -17,16 +17,7 @@ from market_data.market_data import NotInitialisedError
 from market_data.data import EquityData
 from market_data.data import InvalidTickerError, InvalidDateError
 from market_data.data_adapter import DataAdapter, DatabaseNotFoundError
-
-def get_expected_equity_data():
-    expected_data = EquityData()
-    expected_data.open = Decimal('1898.00')
-    expected_data.high = Decimal('1903.79')
-    expected_data.low = Decimal('1856.00')
-    expected_data.close = Decimal('1889.98')
-    expected_data.adj_close = Decimal('1889.98')
-    expected_data.volume = int(5718000)
-    return expected_data
+from market_data.tests.utils import get_expected_equity_data
 
 class MarketDataTests(unittest.TestCase):
 
@@ -112,7 +103,31 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
         mock_close.assert_called_once()
 
     def test_get_equity_data_on_app_reopen(self):
-        self.fail('NOT IMPLEMENTED')
+        ticker = 'AMZN'
+        dt = datetime.datetime(2019, 8, 27)
+        self.app.add_security(ticker)
+
+        expected_data = get_expected_equity_data()
+        mock_method = 'market_data.scraper.Scraper.scrape_equity_data'
+        with patch(mock_method, autospec=True) as mock_scraper:
+            mock_scraper.return_value = expected_data
+            self.app.update_market_data(ticker, dt)
+
+        actual_data = self.app.get_equity_data(ticker, dt)
+        self.assertEqual(expected_data, actual_data)
+        self.app.close()
+
+        new_app = MarketData()
+        new_app.run(database=self.database)
+        actual_data = new_app.get_equity_data(ticker, dt)
+        self.assertEqual(expected_data, actual_data)
+        new_app.close()
+
+    def test_store_more_than_one_date_of_equity_data_for_a_security(self):
+        self.fail("NOT IMPLEMENT")
+
+    def test_store_equity_data_for_more_than_one_security(self):
+        self.fail("NOT IMPLEMENT")
 
 class EquityDataTests(unittest.TestCase):
 
