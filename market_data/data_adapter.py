@@ -29,7 +29,7 @@ class DataAdapter:
     def _create_database(cls, database):
         with open(database, 'w') as db:
             import json
-            json.dump(list(), db)
+            json.dump(TextDataModel().to_json(), db)
 
     @classmethod
     def connect(cls, conn_string=None):
@@ -54,8 +54,8 @@ class DataAdapter:
 
     def get_securities_list(self):
         with open(self.conn_string, 'r') as db:
-            securities = json.load(db)
-            return securities
+            data = TextDataModel.from_json(json.load(db))
+            return data.securities
 
     # TODO(steve): we need to check with this creates 
     # a race condition?!?! I'm confident that it does
@@ -63,10 +63,37 @@ class DataAdapter:
         securities = self.get_securities_list()
         securities += securities_to_add
         with open(self.conn_string, 'w') as db:
-            json.dump(list(set(securities)), db)
+            data = TextDataModel()
+            data.securities = list(set(securities))
+            json.dump(data.to_json(), db)
 
-    def update_market_data(self, security, equity_data):
-        raise InvalidTickerError
+    def update_market_data(self, security, equity_data_series):
+        if security in self.get_securities_list():
+            pass
+        else:
+            raise InvalidTickerError
+
+    def get_equity_data(self, security, dt):
+        pass
+
+class TextDataModel:
+
+    def __init__(self):
+        self.securities = list()
+        self.equity_data = list()
+
+    @classmethod
+    def from_json(cls, json_data):
+        data = cls()
+        data.securities = json_data['securities']
+        data.equity_data = json_data['equity_data']
+        return data
+
+    def to_json(self):
+        d = {}
+        d['securities'] = self.securities
+        d['equity_data'] = self.equity_data
+        return d
 
 class DatabaseExistsError(Exception):
     pass

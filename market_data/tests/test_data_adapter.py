@@ -133,7 +133,16 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
         actual_data = self.database.get_equity_data(ticker, dt)
         self.assertEqual(expected_data, actual_data)
 
+    @skip
     def test_get_equity_data_after_multiple_data_updates(self):
+        self.fail("NOT IMPLEMENTED")
+
+    @skip
+    def test_get_equity_data_for_invalid_ticker_raises_error(self):
+        self.fail("NOT IMPLEMENTED")
+
+    @skip
+    def test_get_equity_data_for_invalid_date_raises_error(self):
         self.fail("NOT IMPLEMENTED")
 
 if __name__ == '__main__':
