@@ -13,8 +13,16 @@ class MarketData:
     # this is where we will throw dependency errors as well
     def run(self, database=None):
         self.init = True
+        self._data = None
         self._scraper = Scraper('yahoo')
         self._database = DataAdapter.connect(database)
+
+    # NOTE(steve): this method will be used to clean up
+    # all the dependency e.g. closing of the database
+    # after the app is closed
+    def close(self):
+        self.init = False
+        self._database.close()
 
     # TODO(steve): should turn this into a decorator
     def _check_initialised(self):
@@ -32,18 +40,17 @@ class MarketData:
     def get_equity_data(self, ticker, dt):
         self._check_initialised()
         if ticker in self._database.get_securities_list():
-            data = self._scraper.scrape_equity_data(ticker, dt)
+            return self._data
         else:
-            raise InvalidTickerError("ticker")
+            raise InvalidTickerError(ticker)
 
-        return data
-
-    # NOTE(steve): this method will be used to clean up
-    # all the dependency e.g. closing of the database
-    # after the app is closed
-    def close(self):
-        self.init = False
-        self._database.close()
+    def update_market_data(self, ticker, dt):
+        self._check_initialised()
+        if ticker in self._database.get_securities_list():
+            data = self._scraper.scrape_equity_data(ticker, dt)
+            self._data = data
+        else:
+            raise InvalidTickerError(ticker)
 
 class NotInitialisedError(Exception):
     pass
