@@ -124,7 +124,9 @@ class FunctionalTests(unittest.TestCase):
 
             # Third time lucky, he enters in the correct
             # ticker and date and gets the results!
-            data = app.get_equity_data(ticker, dt)
+            data = app.update_market_data(ticker, dt)
+
+        data = app.get_equity_data(ticker, dt)
 
         # He then goes to his trusty source, Yahoo to
         # confirm that the security price is indeed correct.
