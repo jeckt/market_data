@@ -50,6 +50,19 @@ class DataAdapter:
     def close(self):
         pass
 
+    def get_securities_list(self):
+        with open(self.conn_string, 'r') as db:
+            securities = json.load(db)
+            return securities
+
+    # TODO(steve): we need to check with this
+    # creates a race condition?!?!
+    def insert_securities(self, securities_to_add):
+        securities = self.get_securities_list()
+        securities += securities_to_add
+        with open(self.conn_string, 'w') as db:
+            json.dump(securities, db)
+
 class DatabaseExistsError(Exception):
     pass
 

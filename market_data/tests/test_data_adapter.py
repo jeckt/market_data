@@ -68,5 +68,32 @@ class DataAdapterTests(unittest.TestCase):
         with self.assertRaises(DatabaseNotFoundError):
             DataAdapter.connect('newdb.txt')
 
+class DataAdapterSecuritiesTests(unittest.TestCase):
+
+    def setUp(self):
+        DataAdapter.create_test_database()
+        self.database = DataAdapter.connect(DataAdapter.test_database)
+
+    def tearDown(self):
+        self.database.close()
+        try:
+            DataAdapter.delete_test_database()
+        except:
+            pass
+
+    def test_get_securities_on_new_database_returns_empty_list(self):
+        tickers = self.database.get_securities_list()
+        self.assertEqual([], tickers)
+
+    def test_insert_securities_adds_securities_to_list(self):
+        tickers = self.database.get_securities_list()
+        self.assertEqual([], tickers)
+        new_tickers = ['AMZN', 'TLS.AX']
+
+        self.database.insert_securities(new_tickers)
+
+        tickers = self.database.get_securities_list()
+        self.assertEqual(new_tickers, tickers)
+
 if __name__ == '__main__':
     unittest.main()
