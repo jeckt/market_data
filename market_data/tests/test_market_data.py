@@ -134,7 +134,9 @@ class EquityDataTests(unittest.TestCase):
             self.app.get_equity_data('AMZN', datetime.datetime(2019, 8, 27))
 
     def test_get_equity_data_on_invalid_date(self):
-        self.fail('NOT IMPLEMENTED')
+        self.app.add_security('AMZN')
+        with self.assertRaises(InvalidDateError):
+            self.app.get_equity_data('AMZN', datetime.datetime(2019, 8, 27))
 
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_invalid_ticker_in_update_market_data(self, mock_scraper):
