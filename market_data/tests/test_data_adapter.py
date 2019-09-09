@@ -12,7 +12,7 @@ import datetime
 from decimal import Decimal
 from market_data.data_adapter import DataAdapter, TextDataModel
 from market_data.data_adapter import DatabaseExistsError, DatabaseNotFoundError
-from market_data.data import EquityData, InvalidTickerError
+from market_data.data import EquityData, InvalidTickerError, InvalidDateError
 from market_data.tests.utils import get_expected_equity_data
 
 class DataAdapterTestDatabaseTests(unittest.TestCase):
@@ -123,7 +123,6 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
         with self.assertRaises(InvalidTickerError):
             self.database.update_market_data(ticker, None)
 
-    @skip
     def test_update_equity_data(self):
         ticker = 'AMZN'
         self.database.insert_securities([ticker])
@@ -139,23 +138,32 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
     def test_get_equity_data_after_multiple_data_updates(self):
         self.fail("NOT IMPLEMENTED")
 
-    @skip
     def test_get_equity_data_for_invalid_ticker_raises_error(self):
-        self.fail("NOT IMPLEMENTED")
+        ticker = 'AMZN'
+        dt = datetime.datetime(2019, 8, 27)
 
-    @skip
+        with self.assertRaises(InvalidTickerError):
+            self.database.get_equity_data(ticker, dt)
+
     def test_get_equity_data_for_invalid_date_raises_error(self):
-        self.fail("NOT IMPLEMENTED")
+        ticker = 'AMZN'
+        self.database.insert_securities([ticker])
+        dt = datetime.datetime(2019, 8, 27)
+
+        with self.assertRaises(InvalidDateError):
+            self.database.get_equity_data(ticker, dt)
 
 class TextDataModelTests(unittest.TestCase):
 
     def test_equality(self):
         data_1 = TextDataModel()
         data_1.securities = ['AMZN', 'GOOG', 'TLS.AX']
+        data_1.date = datetime.datetime(2019, 8, 27)
         data_1.equity_data = get_expected_equity_data()
 
         data_2 = TextDataModel()
         data_2.securities = ['AMZN', 'GOOG', 'TLS.AX']
+        data_2.date = datetime.datetime(2019, 8, 27)
         data_2.equity_data = get_expected_equity_data()
 
         self.assertEqual(data_1, data_2)
@@ -163,12 +171,14 @@ class TextDataModelTests(unittest.TestCase):
     def test_to_dict(self):
         data = TextDataModel()
         data.securities = ['AMZN', 'GOOG', 'TLS.AX']
+        data.date = datetime.datetime(2019, 8, 27)
         data.equity_data = get_expected_equity_data()
 
         dict_data = data.to_dict()
 
         expected_dict_data = {
             'securities': ['AMZN', 'GOOG', 'TLS.AX'],
+            'date': datetime.datetime(2019, 8, 27),
             'equity_data': get_expected_equity_data().to_dict()
         }
 
@@ -177,11 +187,13 @@ class TextDataModelTests(unittest.TestCase):
     def test_from_dict(self):
         dict_data = {
             'securities': ['AMZN', 'GOOG', 'TLS.AX'],
+            'date': datetime.datetime(2019, 8, 27),
             'equity_data': get_expected_equity_data().to_dict()
         }
 
         expected_data = TextDataModel()
         expected_data.securities = ['AMZN', 'GOOG', 'TLS.AX']
+        expected_data.date = datetime.datetime(2019, 8, 27)
         expected_data.equity_data = get_expected_equity_data()
 
         actual_data = TextDataModel.from_dict(dict_data)
