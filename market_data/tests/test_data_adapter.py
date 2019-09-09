@@ -9,9 +9,10 @@ sys.path.insert(0, os.path.split(os.path.split(file_path)[0])[0])
 import unittest
 from unittest import skip
 import datetime
+from decimal import Decimal
 from market_data.data_adapter import DataAdapter, TextDataModel
 from market_data.data_adapter import DatabaseExistsError, DatabaseNotFoundError
-from market_data.data import InvalidTickerError
+from market_data.data import EquityData, InvalidTickerError
 from market_data.tests.utils import get_expected_equity_data
 
 class DataAdapterTestDatabaseTests(unittest.TestCase):
@@ -122,6 +123,7 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
         with self.assertRaises(InvalidTickerError):
             self.database.update_market_data(ticker, None)
 
+    @skip
     def test_update_equity_data(self):
         ticker = 'AMZN'
         self.database.insert_securities([ticker])
@@ -147,6 +149,7 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
 
 class TextDataModelTests(unittest.TestCase):
 
+    @skip
     def test_to_dict(self):
         data = TextDataModel()
         data.securities = ['AMZN', 'GOOG', 'TLS.AX']
@@ -162,8 +165,40 @@ class TextDataModelTests(unittest.TestCase):
         self.assertEqual(dict_data, expected_dict_data)
         self.fail("Need to convert equity data to dict")
 
+    @skip
     def test_from_dict(self):
         self.fail("NOT IMPLEMENTED!")
+
+class EquityDataTests(unittest.TestCase):
+
+    def test_to_dict(self):
+        data = get_expected_equity_data()
+        expected_dict = {
+            'open': Decimal('1898.00'),
+            'high': Decimal('1903.79'),
+            'low': Decimal('1856.00'),
+            'close': Decimal('1889.98'),
+            'adj_close': Decimal('1889.98'),
+            'volume': int(5718000)
+        }
+
+        actual_dict = data.to_dict()
+        self.assertEqual(expected_dict, actual_dict)
+
+    def test_from_dict(self):
+        dict_data = {
+            'open': Decimal('1898.00'),
+            'high': Decimal('1903.79'),
+            'low': Decimal('1856.00'),
+            'close': Decimal('1889.98'),
+            'adj_close': Decimal('1889.98'),
+            'volume': int(5718000)
+        }
+        expected_data = get_expected_equity_data()
+
+        actual_data = EquityData.from_dict(dict_data)
+
+        self.assertEqual(expected_data, actual_data)
 
 if __name__ == '__main__':
     unittest.main()

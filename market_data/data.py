@@ -9,6 +9,17 @@ from decimal import Decimal
 # non negative numbers???
 class EquityData:
 
+    @classmethod
+    def from_dict(cls, data):
+        return cls(
+            open=data['open'],
+            high=data['high'],
+            low=data['low'],
+            close=data['close'],
+            adj_close=data['adj_close'],
+            volume=data['volume']
+        )
+
     def __init__(self, open=0, high=0, low=0, close=0,
                 adj_close=0, volume=0):
         self.open = Decimal(open)
@@ -34,6 +45,16 @@ class EquityData:
         s += f'adj_close={self.adj_close}, '
         s += f'volume={self.volume}]'
         return s
+
+    def to_dict(self):
+        return {
+            'open': self.open,
+            'high': self.high,
+            'low': self.low,
+            'close': self.close,
+            'adj_close': self.adj_close,
+            'volume': self.volume
+        }
 
 class InvalidTickerError(Exception):
     pass

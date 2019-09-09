@@ -10,5 +10,3 @@ def get_expected_equity_data():
     expected_data.adj_close = Decimal('1889.98')
     expected_data.volume = int(5718000)
     return expected_data
-
-
