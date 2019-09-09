@@ -82,7 +82,12 @@ class DataAdapter:
 
     def get_equity_data(self, security, dt):
         if security in self.get_securities_list():
-            raise InvalidDateError(dt)
+            with open(self.conn_string, 'r') as db:
+                data = TextDataModel.from_dict(json.load(db))
+                if data.date == dt:
+                    return data.equity_data
+                else:
+                    raise InvalidDateError(dt)
         else:
             raise InvalidTickerError(security)
 
