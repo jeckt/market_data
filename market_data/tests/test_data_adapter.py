@@ -169,31 +169,34 @@ class TextDataModelTests(unittest.TestCase):
         self.assertEqual(data_1, data_2)
 
     def test_to_dict(self):
+        dt = datetime.datetime(2019, 8, 27)
+
         data = TextDataModel()
         data.securities = ['AMZN', 'GOOG', 'TLS.AX']
-        data.date = datetime.datetime(2019, 8, 27)
+        data.date = dt
         data.equity_data = get_expected_equity_data()
 
         dict_data = data.to_dict()
 
         expected_dict_data = {
             'securities': ['AMZN', 'GOOG', 'TLS.AX'],
-            'date': datetime.datetime(2019, 8, 27),
+            'date': dt.strftime('%d-%b-%Y'),
             'equity_data': get_expected_equity_data().to_dict()
         }
 
         self.assertEqual(dict_data, expected_dict_data)
 
     def test_from_dict(self):
+        dt = datetime.datetime(2019, 8, 27)
         dict_data = {
             'securities': ['AMZN', 'GOOG', 'TLS.AX'],
-            'date': datetime.datetime(2019, 8, 27),
+            'date': dt.strftime('%d-%b-%Y'),
             'equity_data': get_expected_equity_data().to_dict()
         }
 
         expected_data = TextDataModel()
         expected_data.securities = ['AMZN', 'GOOG', 'TLS.AX']
-        expected_data.date = datetime.datetime(2019, 8, 27)
+        expected_data.date = dt
         expected_data.equity_data = get_expected_equity_data()
 
         actual_data = TextDataModel.from_dict(dict_data)

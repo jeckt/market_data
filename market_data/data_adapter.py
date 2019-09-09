@@ -1,5 +1,6 @@
 import os
 import json
+import datetime
 
 from market_data.data import EquityData, InvalidTickerError, InvalidDateError
 
@@ -73,6 +74,7 @@ class DataAdapter:
             with open(self.conn_string, 'w') as db:
                 data = TextDataModel()
                 data.securities = list(set(securities))
+                data.date = equity_data_series[0]
                 data.equity_data = equity_data_series[1]
                 json.dump(data.to_dict(), db)
         else:
@@ -94,16 +96,23 @@ class TextDataModel:
     @classmethod
     def from_dict(cls, dict_data):
         data = cls()
+
         data.securities = dict_data['securities']
-        data.date = dict_data['date']
         data.equity_data = EquityData.from_dict(dict_data['equity_data'])
+        if 'date' in dict_data:
+            data.date = datetime.datetime.strptime(dict_data['date'],
+                                                   '%d-%b-%Y')
+
         return data
 
     def to_dict(self):
         d = {}
+
         d['securities'] = self.securities
-        d['date'] = self.date
         d['equity_data'] = self.equity_data.to_dict()
+        if self.date:
+            d['date'] = self.date.strftime('%d-%b-%Y')
+
         return d
 
     def __eq__(self, other):
