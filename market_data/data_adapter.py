@@ -1,7 +1,7 @@
 import os
 import json
 
-from market_data.data import InvalidTickerError
+from market_data.data import EquityData, InvalidTickerError
 
 # TODO(steve): should we turn the DataAdapter into a 
 # abstract class to provide an interface for the rest
@@ -29,7 +29,7 @@ class DataAdapter:
     def _create_database(cls, database):
         with open(database, 'w') as db:
             import json
-            json.dump(TextDataModel().to_json(), db)
+            json.dump(TextDataModel().to_dict(), db)
 
     @classmethod
     def connect(cls, conn_string=None):
@@ -54,7 +54,7 @@ class DataAdapter:
 
     def get_securities_list(self):
         with open(self.conn_string, 'r') as db:
-            data = TextDataModel.from_json(json.load(db))
+            data = TextDataModel.from_dict(json.load(db))
             return data.securities
 
     # TODO(steve): we need to check with this creates 
@@ -65,7 +65,7 @@ class DataAdapter:
         with open(self.conn_string, 'w') as db:
             data = TextDataModel()
             data.securities = list(set(securities))
-            json.dump(data.to_json(), db)
+            json.dump(data.to_dict(), db)
 
     def update_market_data(self, security, equity_data_series):
         if security in self.get_securities_list():
@@ -80,20 +80,24 @@ class TextDataModel:
 
     def __init__(self):
         self.securities = list()
-        self.equity_data = list()
+        self.equity_data = EquityData()
 
     @classmethod
-    def from_json(cls, json_data):
+    def from_dict(cls, dict_data):
         data = cls()
-        data.securities = json_data['securities']
-        data.equity_data = json_data['equity_data']
+        data.securities = dict_data['securities']
+        data.equity_data = EquityData.from_dict(dict_data['equity_data'])
         return data
 
-    def to_json(self):
+    def to_dict(self):
         d = {}
         d['securities'] = self.securities
-        d['equity_data'] = self.equity_data
+        d['equity_data'] = self.equity_data.to_dict()
         return d
+
+    def __eq__(self, other):
+        return (self.securities == other.securities and
+                self.equity_data == other.equity_data)
 
 class DatabaseExistsError(Exception):
     pass

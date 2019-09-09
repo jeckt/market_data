@@ -149,36 +149,55 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
 
 class TextDataModelTests(unittest.TestCase):
 
-    @skip
+    def test_equality(self):
+        data_1 = TextDataModel()
+        data_1.securities = ['AMZN', 'GOOG', 'TLS.AX']
+        data_1.equity_data = get_expected_equity_data()
+
+        data_2 = TextDataModel()
+        data_2.securities = ['AMZN', 'GOOG', 'TLS.AX']
+        data_2.equity_data = get_expected_equity_data()
+
+        self.assertEqual(data_1, data_2)
+
     def test_to_dict(self):
         data = TextDataModel()
         data.securities = ['AMZN', 'GOOG', 'TLS.AX']
         data.equity_data = get_expected_equity_data()
 
-        dict_data = data.to_json()
+        dict_data = data.to_dict()
 
         expected_dict_data = {
             'securities': ['AMZN', 'GOOG', 'TLS.AX'],
-            'equity_data': get_expected_equity_data()
+            'equity_data': get_expected_equity_data().to_dict()
         }
 
         self.assertEqual(dict_data, expected_dict_data)
-        self.fail("Need to convert equity data to dict")
 
-    @skip
     def test_from_dict(self):
-        self.fail("NOT IMPLEMENTED!")
+        dict_data = {
+            'securities': ['AMZN', 'GOOG', 'TLS.AX'],
+            'equity_data': get_expected_equity_data().to_dict()
+        }
+
+        expected_data = TextDataModel()
+        expected_data.securities = ['AMZN', 'GOOG', 'TLS.AX']
+        expected_data.equity_data = get_expected_equity_data()
+
+        actual_data = TextDataModel.from_dict(dict_data)
+
+        self.assertEqual(expected_data, actual_data)
 
 class EquityDataTests(unittest.TestCase):
 
     def test_to_dict(self):
         data = get_expected_equity_data()
         expected_dict = {
-            'open': Decimal('1898.00'),
-            'high': Decimal('1903.79'),
-            'low': Decimal('1856.00'),
-            'close': Decimal('1889.98'),
-            'adj_close': Decimal('1889.98'),
+            'open': '1898.00',
+            'high': '1903.79',
+            'low': '1856.00',
+            'close': '1889.98',
+            'adj_close': '1889.98',
             'volume': int(5718000)
         }
 
@@ -187,11 +206,11 @@ class EquityDataTests(unittest.TestCase):
 
     def test_from_dict(self):
         dict_data = {
-            'open': Decimal('1898.00'),
-            'high': Decimal('1903.79'),
-            'low': Decimal('1856.00'),
-            'close': Decimal('1889.98'),
-            'adj_close': Decimal('1889.98'),
+            'open': '1898.00',
+            'high': '1903.79',
+            'low': '1856.00',
+            'close': '1889.98',
+            'adj_close': '1889.98',
             'volume': int(5718000)
         }
         expected_data = get_expected_equity_data()

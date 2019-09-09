@@ -48,11 +48,11 @@ class EquityData:
 
     def to_dict(self):
         return {
-            'open': self.open,
-            'high': self.high,
-            'low': self.low,
-            'close': self.close,
-            'adj_close': self.adj_close,
+            'open': str(self.open),
+            'high': str(self.high),
+            'low': str(self.low),
+            'close': str(self.close),
+            'adj_close': str(self.adj_close),
             'volume': self.volume
         }
 
