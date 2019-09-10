@@ -27,12 +27,6 @@ class DataAdapter:
         os.remove(cls.test_database)
 
     @classmethod
-    def _create_database(cls, database):
-        with open(database, 'w') as db:
-            import json
-            json.dump(TextDataModel().to_dict(), db)
-
-    @classmethod
     def connect(cls, conn_string=None):
         if conn_string is None:
             conn_string = cls.prod_database
@@ -44,6 +38,21 @@ class DataAdapter:
 
         return cls(conn_string)
 
+    @classmethod
+    def _create_database(cls, database):
+        cls._save_data(database, TextDataModel())
+
+    @classmethod
+    def _load_data(cls, conn_string):
+        with open(conn_string, 'r') as db:
+            data = TextDataModel.from_dict(json.load(db))
+        return data
+
+    @classmethod
+    def _save_data(cls, conn_string, data):
+        with open(conn_string, 'w') as db:
+            json.dump(data.to_dict(), db)
+
     def __init__(self, conn_string):
         self.conn_string = conn_string
 
@@ -54,40 +63,38 @@ class DataAdapter:
         pass
 
     def get_securities_list(self):
-        with open(self.conn_string, 'r') as db:
-            data = TextDataModel.from_dict(json.load(db))
-            return data.securities
+        return DataAdapter._load_data(self.conn_string).securities
 
     # TODO(steve): we need to check with this creates 
     # a race condition?!?! I'm confident that it does
     def insert_securities(self, securities_to_add):
         securities = self.get_securities_list()
         securities += securities_to_add
-        with open(self.conn_string, 'w') as db:
-            data = TextDataModel()
-            data.securities = list(set(securities))
-            json.dump(data.to_dict(), db)
+        data = TextDataModel()
+        data.securities = list(set(securities))
+
+        DataAdapter._save_data(self.conn_string, data)
 
     def update_market_data(self, security, equity_data_series):
         securities = self.get_securities_list()
         if security in securities:
-            with open(self.conn_string, 'w') as db:
-                data = TextDataModel()
-                data.securities = list(set(securities))
-                data.date = equity_data_series[0]
-                data.equity_data = equity_data_series[1]
-                json.dump(data.to_dict(), db)
+            data = TextDataModel()
+            data.securities = list(set(securities))
+            data.date = equity_data_series[0]
+            data.equity_data = equity_data_series[1]
+
+            DataAdapter._save_data(self.conn_string, data)
         else:
             raise InvalidTickerError
 
     def get_equity_data(self, security, dt):
         if security in self.get_securities_list():
-            with open(self.conn_string, 'r') as db:
-                data = TextDataModel.from_dict(json.load(db))
-                if data.date == dt:
-                    return data.equity_data
-                else:
-                    raise InvalidDateError(dt)
+            data = DataAdapter._load_data(self.conn_string)
+
+            if data.date == dt:
+                return data.equity_data
+            else:
+                raise InvalidDateError(dt)
         else:
             raise InvalidTickerError(security)
 
