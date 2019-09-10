@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.split(os.path.split(file_path)[0])[0])
 import unittest
 from unittest import skip
 import datetime
-from decimal import Decimal
+import json
 from market_data.data_adapter import DataAdapter, TextDataModel
 from market_data.data_adapter import DatabaseExistsError, DatabaseNotFoundError
 from market_data.data import EquityData, InvalidTickerError, InvalidDateError
@@ -168,7 +168,8 @@ class TextDataModelTests(unittest.TestCase):
 
         self.assertEqual(data_1, data_2)
 
-    def test_to_dict(self):
+    def test_json_encoder_can_serialise_text_data_model(self):
+        # set up
         dt = datetime.datetime(2019, 8, 27)
 
         data = TextDataModel()
@@ -176,62 +177,56 @@ class TextDataModelTests(unittest.TestCase):
         data.date = dt
         data.equity_data = get_expected_equity_data()
 
-        dict_data = data.to_dict()
+        # method
+        actual_data = json.dumps(data, default=TextDataModel.json_encoder)
 
-        expected_dict_data = {
-            'securities': ['AMZN', 'GOOG', 'TLS.AX'],
+        # expected output
+        data_dict = {
+            "securities": ['AMZN', 'GOOG', 'TLS.AX'],
             'date': dt.strftime('%d-%b-%Y'),
-            'equity_data': get_expected_equity_data().to_dict()
+            "equity_data": {
+                'open': '1898.00',
+                'high': '1903.79',
+                'low': '1856.00',
+                'close': '1889.98',
+                'adj_close': '1889.98',
+                'volume': int(5718000)
+            }
         }
+        json_data = json.dumps(data_dict)
 
-        self.assertEqual(dict_data, expected_dict_data)
+        # test
+        self.assertEqual(json_data, actual_data)
 
-    def test_from_dict(self):
+    def test_json_decoder_can_deserialise_text_data_model(self):
+        # set up
         dt = datetime.datetime(2019, 8, 27)
-        dict_data = {
-            'securities': ['AMZN', 'GOOG', 'TLS.AX'],
+        data_dict = {
+            "securities": ['AMZN', 'GOOG', 'TLS.AX'],
             'date': dt.strftime('%d-%b-%Y'),
-            'equity_data': get_expected_equity_data().to_dict()
+            "equity_data": {
+                'open': '1898.00',
+                'high': '1903.79',
+                'low': '1856.00',
+                'close': '1889.98',
+                'adj_close': '1889.98',
+                'volume': int(5718000)
+            }
         }
+        json_data = json.dumps(data_dict)
 
+
+        # method
+        actual_data = json.loads(json_data,
+                                 object_hook=TextDataModel.json_decoder)
+
+        # expected output
         expected_data = TextDataModel()
         expected_data.securities = ['AMZN', 'GOOG', 'TLS.AX']
         expected_data.date = dt
         expected_data.equity_data = get_expected_equity_data()
 
-        actual_data = TextDataModel.from_dict(dict_data)
-
-        self.assertEqual(expected_data, actual_data)
-
-class EquityDataTests(unittest.TestCase):
-
-    def test_to_dict(self):
-        data = get_expected_equity_data()
-        expected_dict = {
-            'open': '1898.00',
-            'high': '1903.79',
-            'low': '1856.00',
-            'close': '1889.98',
-            'adj_close': '1889.98',
-            'volume': int(5718000)
-        }
-
-        actual_dict = data.to_dict()
-        self.assertEqual(expected_dict, actual_dict)
-
-    def test_from_dict(self):
-        dict_data = {
-            'open': '1898.00',
-            'high': '1903.79',
-            'low': '1856.00',
-            'close': '1889.98',
-            'adj_close': '1889.98',
-            'volume': int(5718000)
-        }
-        expected_data = get_expected_equity_data()
-
-        actual_data = EquityData.from_dict(dict_data)
-
+        # test
         self.assertEqual(expected_data, actual_data)
 
 if __name__ == '__main__':

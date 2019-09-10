@@ -45,13 +45,13 @@ class DataAdapter:
     @classmethod
     def _load_data(cls, conn_string):
         with open(conn_string, 'r') as db:
-            data = TextDataModel.from_dict(json.load(db))
+            data = json.load(db, object_hook=TextDataModel.json_decoder)
         return data
 
     @classmethod
     def _save_data(cls, conn_string, data):
         with open(conn_string, 'w') as db:
-            json.dump(data.to_dict(), db)
+            json.dump(data, db, default=TextDataModel.json_encoder)
 
     def __init__(self, conn_string):
         self.conn_string = conn_string
@@ -106,24 +106,55 @@ class TextDataModel:
         self.equity_data = EquityData()
 
     @classmethod
-    def from_dict(cls, dict_data):
+    def json_encoder(cls, o):
+        if isinstance(o, TextDataModel):
+            return o._to_dict()
+        else:
+            raise TypeError(f'{repr(o)} is not JSON serialized')
+
+    @classmethod
+    def json_decoder(cls, o):
+        try:
+            return TextDataModel._from_dict(o)
+        except:
+            return o
+
+    @classmethod
+    def _from_dict(cls, dict_data):
         data = cls()
 
         data.securities = dict_data['securities']
-        data.equity_data = EquityData.from_dict(dict_data['equity_data'])
+
+        data.equity_data = EquityData(
+            open=dict_data['equity_data']['open'],
+            high=dict_data['equity_data']['high'],
+            low=dict_data['equity_data']['low'],
+            close=dict_data['equity_data']['close'],
+            adj_close=dict_data['equity_data']['adj_close'],
+            volume=dict_data['equity_data']['volume']
+        )
+
         if 'date' in dict_data:
             data.date = datetime.datetime.strptime(dict_data['date'],
                                                    '%d-%b-%Y')
-
         return data
 
-    def to_dict(self):
+    def _to_dict(self):
         d = {}
 
         d['securities'] = self.securities
-        d['equity_data'] = self.equity_data.to_dict()
+
         if self.date:
             d['date'] = self.date.strftime('%d-%b-%Y')
+
+        d['equity_data'] = {
+            'open': str(self.equity_data.open),
+            'high': str(self.equity_data.high),
+            'low': str(self.equity_data.low),
+            'close': str(self.equity_data.close),
+            'adj_close': str(self.equity_data.adj_close),
+            'volume': self.equity_data.volume
+        }
 
         return d
 
