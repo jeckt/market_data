@@ -25,6 +25,19 @@ class FunctionalTests(unittest.TestCase):
         except:
             pass
 
+    def get_test_data(self, ticker, date_string):
+        data = self.test_data[ticker]
+        dt = datetime.datetime.strptime(date_string, '%d-%b-%Y')
+        expected_data = EquityData(
+            open=data[date_string]["open"],
+            high=data[date_string]["high"],
+            low=data[date_string]["low"],
+            close=data[date_string]["close"],
+            adj_close=data[date_string]["adj_close"],
+            volume=data[date_string]["volume"]
+        )
+        return dt, expected_data
+
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_can_get_equity_data_after_multiple_updates(self, mock_scrape):
         # Carol once again opens up the application and 
@@ -36,7 +49,40 @@ class FunctionalTests(unittest.TestCase):
             app.add_security(ticker)
 
         # proceeds to update the data in the application
-        # for multiple dates.
+        # for multiple dates and securities
+        for ticker in new_tickers:
+            data = self.test_data[ticker]
+            for date_string in data:
+                dt, expected_data = self.get_test_data(ticker, date_string)
+                mock_scrape.return_value = expected_data
+                app.update_market_data(ticker, dt)
+
+        # Satisfied that she has updated all she needs to
+        # she closes the application down.
+        app.close()
+
+        # Josh, her ever inquistive friend checks in on
+        # the prices of AMZN and GOOG.
+        new_app = MarketData()
+        new_app.run(database=self.database)
+
+        # He first checks the prices for GOOG first
+        dt, expected_data = self.get_test_data('GOOG', '27-Aug-2019')
+        actual_data = new_app.get_equity_data('GOOG', dt)
+        self.assertEqual(expected_data, actual_data, 'GOOG: 27-Aug-2019')
+
+        # He then checks the prices for AMZN on both dates
+        dt, expected_data = self.get_test_data('AMZN', '27-Aug-2019')
+        actual_data = new_app.get_equity_data('AMZN', dt)
+        self.assertEqual(expected_data, actual_data, 'AMZN: 27-Aug-2019')
+
+        dt, expected_data = self.get_test_data('AMZN', '26-Aug-2019')
+        actual_data = new_app.get_equity_data('AMZN', dt)
+        self.assertEqual(expected_data, actual_data, 'AMZN: 26-Aug-2019')
+
+        # Satisfied with what he sees he closes the app
+        new_app.close()
+
         self.fail("NOT IMPLEMENTED!")
 
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
@@ -61,19 +107,8 @@ class FunctionalTests(unittest.TestCase):
         tickers = app2.get_securities_list()
         self.assertEqual(set(new_tickers), set(tickers))
 
-        data = self.test_data['AMZN']
-        date_string = '27-Aug-2019'
-        dt = datetime.datetime.strptime(date_string, '%d-%b-%Y')
-        expected_data = EquityData(
-            open=data[date_string]["open"],
-            high=data[date_string]["high"],
-            low=data[date_string]["low"],
-            close=data[date_string]["close"],
-            adj_close=data[date_string]["adj_close"],
-            volume=data[date_string]["volume"]
-        )
+        dt, expected_data = self.get_test_data('AMZN', '27-Aug-2019')
         mock_scrape.return_value = expected_data
-
         for ticker in tickers:
             app2.update_market_data(ticker, dt)
 
