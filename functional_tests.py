@@ -88,9 +88,6 @@ class FunctionalTests(unittest.TestCase):
         # she closes it and gets on with her day
         app.close()
 
-    # TODO(steve): we need another test where the
-    # historical data is not available through the
-    # scraper. Should that be a unit test???
     def test_get_historical_equity_data_from_app(self):
         # Josh has heard of this new app from 
         # Carol and decides to open the app
@@ -115,18 +112,17 @@ class FunctionalTests(unittest.TestCase):
         with self.assertRaises(InvalidDateError):
             data = app.get_equity_data(ticker, datetime.datetime(2017, 8, 25))
 
-        # NOTE(steve) patch work so that we don't hit the 
-        # external dependency
+        # NOTE(steve) patch work so that we don't hit the external dependency
         with patch('urllib.request.urlopen', autospec=True) as mock_urlopen:
             import market_data.tests.test_scraper as sp
             load_test_data = sp.ScraperYahooEquityPricesTests.load_test_data
             mock_urlopen_stub = mock_urlopen.return_value.__enter__
             mock_urlopen_stub.return_value.read.return_value = load_test_data()
 
-            # Third time lucky, he enters in the correct
-            # ticker and date and gets the results!
             data = app.update_market_data(ticker, dt)
 
+        # Third time lucky, he enters in the correct
+        # ticker and date and gets the results!
         data = app.get_equity_data(ticker, dt)
 
         # He then goes to his trusty source, Yahoo to
