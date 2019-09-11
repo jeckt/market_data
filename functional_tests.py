@@ -4,7 +4,7 @@ import unittest
 from unittest import skip
 from unittest.mock import patch, Mock
 import datetime
-from decimal import Decimal
+import json
 
 from market_data.market_data import MarketData
 from market_data.data import EquityData
@@ -14,6 +14,8 @@ from market_data.data_adapter import DataAdapter
 class FunctionalTests(unittest.TestCase):
 
     def setUp(self):
+        with open('market_data/tests/test_data.json', 'r') as db:
+            self.test_data = json.load(db)
         self.database = DataAdapter.test_database
         DataAdapter.create_test_database()
 
@@ -22,6 +24,20 @@ class FunctionalTests(unittest.TestCase):
             DataAdapter.delete_test_database()
         except:
             pass
+
+    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    def test_can_get_equity_data_after_multiple_updates(self, mock_scrape):
+        # Carol once again opens up the application and 
+        # adds a couple of securities into the app.
+        app = MarketData()
+        app.run(database=self.database)
+        new_tickers = ['AMZN', 'GOOG']
+        for ticker in new_tickers:
+            app.add_security(ticker)
+
+        # proceeds to update the data in the application
+        # for multiple dates.
+        self.fail("NOT IMPLEMENTED!")
 
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_can_retreive_equity_data_on_app_reopen(self, mock_scrape):
@@ -45,16 +61,19 @@ class FunctionalTests(unittest.TestCase):
         tickers = app2.get_securities_list()
         self.assertEqual(set(new_tickers), set(tickers))
 
-        expected_data = EquityData()
-        expected_data.open = Decimal('1898.11')
-        expected_data.high = Decimal('1899.55')
-        expected_data.low = Decimal('1849.44')
-        expected_data.close = Decimal('1866.78')
-        expected_data.adj_close = Decimal('1866.78')
-        expected_data.volume = int(4470700)
+        data = self.test_data['AMZN']
+        date_string = '27-Aug-2019'
+        dt = datetime.datetime.strptime(date_string, '%d-%b-%Y')
+        expected_data = EquityData(
+            open=data[date_string]["open"],
+            high=data[date_string]["high"],
+            low=data[date_string]["low"],
+            close=data[date_string]["close"],
+            adj_close=data[date_string]["adj_close"],
+            volume=data[date_string]["volume"]
+        )
         mock_scrape.return_value = expected_data
 
-        dt = datetime.datetime(2019, 8, 27)
         for ticker in tickers:
             app2.update_market_data(ticker, dt)
 
@@ -127,13 +146,14 @@ class FunctionalTests(unittest.TestCase):
 
         # He then goes to his trusty source, Yahoo to
         # confirm that the security price is indeed correct.
-        expected_data = EquityData()
-        expected_data.open = Decimal('1898.11')
-        expected_data.high = Decimal('1899.55')
-        expected_data.low = Decimal('1849.44')
-        expected_data.close = Decimal('1866.78')
-        expected_data.adj_close = Decimal('1866.78')
-        expected_data.volume = int(4470700)
+        expected_data = EquityData(
+            open='1898.11',
+            high='1899.55',
+            low='1849.44',
+            close='1866.78',
+            adj_close='1866.78',
+            volume=4470700
+        )
         self.assertEqual(data, expected_data)
 
 if __name__ == '__main__':
