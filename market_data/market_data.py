@@ -13,7 +13,6 @@ class MarketData:
     # this is where we will throw dependency errors as well
     def run(self, database=None):
         self.init = True
-        self._data = None
         self._scraper = Scraper('yahoo')
         self._database = DataAdapter.connect(database)
 
@@ -39,19 +38,14 @@ class MarketData:
 
     def get_equity_data(self, ticker, dt):
         self._check_initialised()
-        if ticker in self._database.get_securities_list():
-            if not self._data is None and self._data[0] == dt:
-                return self._data[1]
-            else:
-                raise InvalidDateError(f'{ticker}: {dt}')
-        else:
-            raise InvalidTickerError(ticker)
+        data = self._database.get_equity_data(ticker, dt)
+        return data
 
     def update_market_data(self, ticker, dt):
         self._check_initialised()
         if ticker in self._database.get_securities_list():
             data = self._scraper.scrape_equity_data(ticker, dt)
-            self._data = (dt, data)
+            self._database.update_market_data(ticker, (dt, data))
         else:
             raise InvalidTickerError(ticker)
 
