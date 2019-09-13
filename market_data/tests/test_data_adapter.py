@@ -134,9 +134,79 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
         actual_data = self.database.get_equity_data(ticker, dt)
         self.assertEqual(expected_data, actual_data)
 
-    @skip
-    def test_get_equity_data_after_multiple_data_updates(self):
-        self.fail("NOT IMPLEMENTED")
+    # TODO(steve): check if this a duplication of the test in
+    # test_market_data.py. Very similar set up and tests???
+    def test_get_equity_data_after_multiple_dates_updates(self):
+        ticker = 'AMZN'
+        self.database.insert_securities([ticker])
+
+        with open('market_data/tests/test_data.json', 'r') as db:
+            test_data = json.load(db)
+
+        dict_data = test_data[ticker]['27-Aug-2019']
+        expected_data_1 = EquityData(
+            open=dict_data['open'],
+            high=dict_data['high'],
+            low=dict_data['low'],
+            close=dict_data['close'],
+            adj_close=dict_data['adj_close'],
+            volume=dict_data['volume']
+        )
+        dt_1 = datetime.datetime(2019, 8, 27)
+        self.database.update_market_data(ticker, (dt_1, expected_data_1))
+
+        dict_data = test_data[ticker]['26-Aug-2019']
+        expected_data_2 = EquityData(
+            open=dict_data['open'],
+            high=dict_data['high'],
+            low=dict_data['low'],
+            close=dict_data['close'],
+            adj_close=dict_data['adj_close'],
+            volume=dict_data['volume']
+        )
+        dt_2 = datetime.datetime(2019, 8, 27)
+        self.database.update_market_data(ticker, (dt_2, expected_data_2))
+
+        actual_data_2 = self.database.get_equity_data(ticker, dt_2)
+        self.assertEqual(expected_data_2, actual_data_2)
+
+        actual_data_1 = self.database.get_equity_data(ticker, dt_1)
+        self.assertEqual(expected_data_1, actual_data_1)
+
+    def test_get_equity_data_for_multiple_securities(self):
+        self.database.insert_securities(['AMZN', 'GOOG'])
+        dt = datetime.datetime(2019, 8, 27)
+
+        with open('market_data/tests/test_data.json', 'r') as db:
+            test_data = json.load(db)
+
+        dict_data = test_data['AMZN']['27-Aug-2019']
+        expected_data_1 = EquityData(
+            open=dict_data['open'],
+            high=dict_data['high'],
+            low=dict_data['low'],
+            close=dict_data['close'],
+            adj_close=dict_data['adj_close'],
+            volume=dict_data['volume']
+        )
+        self.database.update_market_data('AMZN', (dt, expected_data_1))
+
+        dict_data = test_data['GOOG']['27-Aug-2019']
+        expected_data_2 = EquityData(
+            open=dict_data['open'],
+            high=dict_data['high'],
+            low=dict_data['low'],
+            close=dict_data['close'],
+            adj_close=dict_data['adj_close'],
+            volume=dict_data['volume']
+        )
+        self.database.update_market_data('GOOG', (dt, expected_data_2))
+
+        actual_data_2 = self.database.get_equity_data('GOOG', dt)
+        self.assertEqual(expected_data_2, actual_data_2)
+
+        actual_data_1 = self.database.get_equity_data('AMZN', dt)
+        self.assertEqual(expected_data_1, actual_data_1)
 
     def test_get_equity_data_for_invalid_ticker_raises_error(self):
         ticker = 'AMZN'
