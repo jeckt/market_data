@@ -10,7 +10,7 @@ import unittest
 from unittest import skip
 from unittest.mock import patch
 import datetime
-from decimal import Decimal
+import json
 
 from market_data.market_data import MarketData
 from market_data.market_data import NotInitialisedError
@@ -126,8 +126,49 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
     def test_store_more_than_one_date_of_equity_data_for_a_security(self):
         self.fail("NOT IMPLEMENT")
 
-    def test_store_equity_data_for_more_than_one_security(self):
-        self.fail("NOT IMPLEMENT")
+    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    def test_store_equity_data_for_more_than_one_security(self, mock_scraper):
+        dt = datetime.datetime(2019, 8, 27)
+        self.app.add_security('AMZN')
+        self.app.add_security('GOOG')
+
+        with open('market_data/tests/test_data.json', 'r') as db:
+            test_data = json.load(db)
+
+        dict_data = test_data['AMZN']['27-Aug-2019']
+        expected_data_1 = EquityData(
+            open=dict_data['open'],
+            high=dict_data['high'],
+            low=dict_data['low'],
+            close=dict_data['close'],
+            adj_close=dict_data['adj_close'],
+            volume=dict_data['volume']
+        )
+        mock_scraper.return_value = expected_data_1
+        self.app.update_market_data('AMZN', dt)
+
+        dict_data = test_data['GOOG']['27-Aug-2019']
+        expected_data_2 = EquityData(
+            open=dict_data['open'],
+            high=dict_data['high'],
+            low=dict_data['low'],
+            close=dict_data['close'],
+            adj_close=dict_data['adj_close'],
+            volume=dict_data['volume']
+        )
+        mock_scraper.return_value = expected_data_2
+        self.app.update_market_data('GOOG', dt)
+
+        self.app.close()
+
+        new_app = MarketData()
+        new_app.run(database=self.database)
+
+        actual_data_2 = new_app.get_equity_data('GOOG', dt)
+        self.assertEqual(expected_data_2, actual_data_2)
+
+        actual_data_1 = new_app.get_equity_data('AMZN', dt)
+        self.assertEqual(expected_data_1, actual_data_1)
 
 class EquityDataTests(unittest.TestCase):
 
