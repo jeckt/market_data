@@ -151,11 +151,9 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
         self.assertEqual(expected_data, actual_data)
 
     def test_update_equity_data(self):
-        ticker = 'AMZN'
+        ticker, dt, expected_data = get_expected_equity_data()
         self.database.insert_securities([ticker])
 
-        dt = datetime.datetime(2019, 8, 27)
-        expected_data = get_expected_equity_data()
         self.database.update_market_data(ticker, (dt, expected_data))
 
         actual_data = self.database.get_equity_data(ticker, dt)
@@ -254,20 +252,18 @@ class TextDataModelTests(unittest.TestCase):
 
     def test_equality(self):
         dt = datetime.datetime(2019, 8, 27).strftime('%d-%b-%Y')
+        _, _, equity_data = get_expected_equity_data()
+
         data_1 = TextDataModel()
         data_1.securities = ['AMZN', 'GOOG', 'TLS.AX']
         data_1.equity_data = {
-            'AMZN': {
-                dt : get_expected_equity_data()
-            }
+            'AMZN': { dt : equity_data }
         }
 
         data_2 = TextDataModel()
         data_2.securities = ['AMZN', 'GOOG', 'TLS.AX']
         data_2.equity_data = {
-            'AMZN': {
-                dt : get_expected_equity_data()
-            }
+            'AMZN': { dt : equity_data }
         }
 
         self.assertEqual(data_1, data_2)
@@ -275,13 +271,12 @@ class TextDataModelTests(unittest.TestCase):
     def test_json_encoder_can_serialise_text_data_model(self):
         # set up
         dt = datetime.datetime(2019, 8, 27).strftime('%d-%b-%Y')
+        _, _, equity_data = get_expected_equity_data()
 
         data = TextDataModel()
         data.securities = ['AMZN', 'GOOG', 'TLS.AX']
         data.equity_data = {
-            'AMZN': {
-                dt: get_expected_equity_data()
-            }
+            'AMZN': { dt: equity_data }
         }
 
         # method
@@ -329,12 +324,11 @@ class TextDataModelTests(unittest.TestCase):
                                  object_hook=TextDataModel.json_decoder)
 
         # expected output
+        _, _, equity_data = get_expected_equity_data()
         expected_data = TextDataModel()
         expected_data.securities = ['AMZN', 'GOOG', 'TLS.AX']
         expected_data.equity_data = {
-            "AMZN": {
-                dt: get_expected_equity_data()
-            }
+            "AMZN": { dt: equity_data }
         }
 
         # test

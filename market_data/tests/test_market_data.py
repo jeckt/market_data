@@ -103,11 +103,9 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
         mock_close.assert_called_once()
 
     def test_get_equity_data_on_app_reopen(self):
-        ticker = 'AMZN'
-        dt = datetime.datetime(2019, 8, 27)
+        ticker, dt, expected_data = get_expected_equity_data()
         self.app.add_security(ticker)
 
-        expected_data = get_expected_equity_data()
         mock_method = 'market_data.scraper.Scraper.scrape_equity_data'
         with patch(mock_method, autospec=True) as mock_scraper:
             mock_scraper.return_value = expected_data
@@ -261,11 +259,9 @@ class EquityDataTests(unittest.TestCase):
     # TODO(steve): should we split these two tests by
     # injecting the market data directly into the test database???
     def test_update_market_data_and_get_equity_data(self):
-        ticker = 'AMZN'
-        dt = datetime.datetime(2019, 8, 27)
+        ticker, dt, expected_data = get_expected_equity_data()
         self.app.add_security(ticker)
 
-        expected_data = get_expected_equity_data()
         mock_method = 'market_data.scraper.Scraper.scrape_equity_data'
         with patch(mock_method, autospec=True) as mock_scraper:
             mock_scraper.return_value = expected_data

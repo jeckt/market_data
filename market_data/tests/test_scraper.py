@@ -14,6 +14,7 @@ from decimal import Decimal
 
 from market_data.scraper import Scraper, InvalidSourceError
 from market_data.data import EquityData, InvalidTickerError, InvalidDateError
+import market_data.tests.utils as test_utils
 
 class ScraperTests(unittest.TestCase):
 
@@ -38,8 +39,7 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
 
     @patch('urllib.request.urlopen', autospec=True)
     def test_scrape_returns_correct_equity_data(self, mock_urlopen):
-        ticker = 'AMZN'
-        dt = datetime.datetime(2019, 8, 23)
+        ticker, dt, expected_data = test_utils.get_expected_equity_data()
         scraper = Scraper('yahoo')
 
         mock_urlopen_context = mock_urlopen.return_value.__enter__.return_value
@@ -47,17 +47,10 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
         mock_urlopen_context.read.return_value = self.load_test_data()
 
         results = scraper.scrape_equity_data(ticker, dt)
-        expected_output = EquityData()
-        expected_output.open = Decimal('1793.03')
-        expected_output.high = Decimal('1804.90')
-        expected_output.low = Decimal('1745.23')
-        expected_output.close = Decimal('1749.62')
-        expected_output.adj_close = Decimal('1749.62')
-        expected_output.volume = int(5270800)
 
         self.assertIsInstance(results, EquityData)
-        self.assertEqual(results, expected_output,
-                         msg=f'res: {results} != ex: {expected_output}')
+        self.assertEqual(results, expected_data,
+                         msg=f'res: {results} != ex: {expected_data}')
 
     @patch('urllib.request.urlopen', autospec=True)
     def test_scrape_invalid_date(self, mock_urlopen):

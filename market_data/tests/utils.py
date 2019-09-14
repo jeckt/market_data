@@ -22,6 +22,8 @@ def get_test_data(test_data, ticker, dt):
     return equity_data
 
 def get_expected_equity_data():
+    ticker = 'AMZN'
+    dt = datetime.datetime(2019, 5, 10)
     expected_data = EquityData()
     expected_data.open = Decimal('1898.00')
     expected_data.high = Decimal('1903.79')
@@ -29,4 +31,4 @@ def get_expected_equity_data():
     expected_data.close = Decimal('1889.98')
     expected_data.adj_close = Decimal('1889.98')
     expected_data.volume = int(5718000)
-    return expected_data
+    return ticker, dt, expected_data
