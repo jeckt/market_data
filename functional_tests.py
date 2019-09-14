@@ -4,18 +4,17 @@ import unittest
 from unittest import skip
 from unittest.mock import patch, Mock
 import datetime
-import json
 
 from market_data.market_data import MarketData
 from market_data.data import EquityData
 from market_data.data import InvalidTickerError, InvalidDateError
 from market_data.data_adapter import DataAdapter
+import market_data.tests.utils as test_utils
 
 class FunctionalTests(unittest.TestCase):
 
     def setUp(self):
-        with open('market_data/tests/test_data.json', 'r') as db:
-            self.test_data = json.load(db)
+        self.test_data = test_utils.load_test_data()
         self.database = DataAdapter.test_database
         DataAdapter.create_test_database()
 
@@ -24,19 +23,6 @@ class FunctionalTests(unittest.TestCase):
             DataAdapter.delete_test_database()
         except:
             pass
-
-    def get_test_data(self, ticker, date_string):
-        data = self.test_data[ticker]
-        dt = datetime.datetime.strptime(date_string, '%d-%b-%Y')
-        expected_data = EquityData(
-            open=data[date_string]["open"],
-            high=data[date_string]["high"],
-            low=data[date_string]["low"],
-            close=data[date_string]["close"],
-            adj_close=data[date_string]["adj_close"],
-            volume=data[date_string]["volume"]
-        )
-        return dt, expected_data
 
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_can_get_equity_data_after_multiple_updates(self, mock_scrape):
@@ -53,8 +39,10 @@ class FunctionalTests(unittest.TestCase):
         for ticker in new_tickers:
             data = self.test_data[ticker]
             for date_string in data:
-                dt, expected_data = self.get_test_data(ticker, date_string)
-                mock_scrape.return_value = expected_data
+                dt = datetime.datetime.strptime(date_string, '%d-%b-%Y')
+                equity_data = test_utils.get_test_data(self.test_data,
+                                                       ticker, dt)
+                mock_scrape.return_value = equity_data
                 app.update_market_data(ticker, dt)
 
         # Satisfied that she has updated all she needs to
@@ -67,16 +55,18 @@ class FunctionalTests(unittest.TestCase):
         new_app.run(database=self.database)
 
         # He first checks the prices for GOOG first
-        dt, expected_data = self.get_test_data('GOOG', '27-Aug-2019')
+        dt = datetime.datetime(2019, 8, 27)
+        expected_data = test_utils.get_test_data(self.test_data, 'GOOG', dt)
         actual_data = new_app.get_equity_data('GOOG', dt)
         self.assertEqual(expected_data, actual_data, 'GOOG: 27-Aug-2019')
 
         # He then checks the prices for AMZN on both dates
-        dt, expected_data = self.get_test_data('AMZN', '27-Aug-2019')
+        expected_data = test_utils.get_test_data(self.test_data, 'AMZN', dt)
         actual_data = new_app.get_equity_data('AMZN', dt)
         self.assertEqual(expected_data, actual_data, 'AMZN: 27-Aug-2019')
 
-        dt, expected_data = self.get_test_data('AMZN', '26-Aug-2019')
+        dt = datetime.datetime(2019, 8, 26)
+        expected_data = test_utils.get_test_data(self.test_data, 'AMZN', dt)
         actual_data = new_app.get_equity_data('AMZN', dt)
         self.assertEqual(expected_data, actual_data, 'AMZN: 26-Aug-2019')
 
@@ -105,7 +95,8 @@ class FunctionalTests(unittest.TestCase):
         tickers = app2.get_securities_list()
         self.assertEqual(set(new_tickers), set(tickers))
 
-        dt, expected_data = self.get_test_data('AMZN', '27-Aug-2019')
+        dt = datetime.datetime(2019, 8, 27)
+        expected_data = test_utils.get_test_data(self.test_data, 'AMZN', dt)
         mock_scrape.return_value = expected_data
         for ticker in tickers:
             app2.update_market_data(ticker, dt)
@@ -140,7 +131,8 @@ class FunctionalTests(unittest.TestCase):
         # she closes it and gets on with her day
         app.close()
 
-    def test_get_historical_equity_data_from_app(self):
+    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    def test_get_equity_data_from_app(self, mock_scrape):
         # Josh has heard of this new app from 
         # Carol and decides to open the app
         # and play with it.
@@ -150,7 +142,7 @@ class FunctionalTests(unittest.TestCase):
         # Carol told Josh that she has already
         # added a security into the app
         ticker = 'AMZN'
-        dt = datetime.datetime(2019, 7, 31)
+        dt = datetime.datetime(2019, 8, 27)
         app.add_security(ticker)
 
         # Josh proceeds to check what the security price 
@@ -164,29 +156,16 @@ class FunctionalTests(unittest.TestCase):
         with self.assertRaises(InvalidDateError):
             data = app.get_equity_data(ticker, datetime.datetime(2017, 8, 25))
 
-        # NOTE(steve) patch work so that we don't hit the external dependency
-        with patch('urllib.request.urlopen', autospec=True) as mock_urlopen:
-            import market_data.tests.test_scraper as sp
-            load_test_data = sp.ScraperYahooEquityPricesTests.load_test_data
-            mock_urlopen_stub = mock_urlopen.return_value.__enter__
-            mock_urlopen_stub.return_value.read.return_value = load_test_data()
-
-            data = app.update_market_data(ticker, dt)
-
         # Third time lucky, he enters in the correct
         # ticker and date and gets the results!
+        expected_data = test_utils.get_test_data(self.test_data, ticker, dt)
+        mock_scrape.return_value = expected_data
+        app.update_market_data(ticker, dt)
+
         data = app.get_equity_data(ticker, dt)
 
         # He then goes to his trusty source, Yahoo to
         # confirm that the security price is indeed correct.
-        expected_data = EquityData(
-            open='1898.11',
-            high='1899.55',
-            low='1849.44',
-            close='1866.78',
-            adj_close='1866.78',
-            volume=4470700
-        )
         self.assertEqual(data, expected_data)
 
 if __name__ == '__main__':
