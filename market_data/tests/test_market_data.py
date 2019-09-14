@@ -17,7 +17,7 @@ from market_data.market_data import NotInitialisedError
 from market_data.data import EquityData
 from market_data.data import InvalidTickerError, InvalidDateError
 from market_data.data_adapter import DataAdapter, DatabaseNotFoundError
-from market_data.tests.utils import get_expected_equity_data
+import market_data.tests.utils as test_utils
 
 class MarketDataTests(unittest.TestCase):
 
@@ -103,7 +103,7 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
         mock_close.assert_called_once()
 
     def test_get_equity_data_on_app_reopen(self):
-        ticker, dt, expected_data = get_expected_equity_data()
+        ticker, dt, expected_data = test_utils.get_expected_equity_data()
         self.app.add_security(ticker)
 
         mock_method = 'market_data.scraper.Scraper.scrape_equity_data'
@@ -126,45 +126,29 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
         ticker = 'AMZN'
         self.app.add_security(ticker)
 
-        with open('market_data/tests/test_data.json', 'r') as db:
-            test_data = json.load(db)
-
-        dict_data = test_data[ticker]['27-Aug-2019']
-        expected_data_1 = EquityData(
-            open=dict_data['open'],
-            high=dict_data['high'],
-            low=dict_data['low'],
-            close=dict_data['close'],
-            adj_close=dict_data['adj_close'],
-            volume=dict_data['volume']
-        )
+        dt_1 = datetime.datetime(2019, 8, 27)
+        test_data = test_utils.load_test_data()
+        expected_data_1 = test_utils.get_test_data(test_data, ticker, dt_1)
         mock_scraper.return_value = expected_data_1
-        self.app.update_market_data(ticker, datetime.datetime(2019, 8, 27))
+        self.app.update_market_data(ticker, dt_1)
 
-        dict_data = test_data[ticker]['26-Aug-2019']
-        expected_data_2 = EquityData(
-            open=dict_data['open'],
-            high=dict_data['high'],
-            low=dict_data['low'],
-            close=dict_data['close'],
-            adj_close=dict_data['adj_close'],
-            volume=dict_data['volume']
-        )
+        dt_2 = datetime.datetime(2019, 8, 26)
+        expected_data_2 = test_utils.get_test_data(test_data, ticker, dt_2)
         mock_scraper.return_value = expected_data_2
-        self.app.update_market_data(ticker, datetime.datetime(2019, 8, 26))
+        self.app.update_market_data(ticker, dt_2)
 
         self.app.close()
 
         new_app = MarketData()
         new_app.run(database=self.database)
 
-        actual_data_2 = new_app.get_equity_data(ticker,
-                                                datetime.datetime(2019, 8, 26))
+        actual_data_2 = new_app.get_equity_data(ticker, dt_2)
         self.assertEqual(expected_data_2, actual_data_2)
 
-        actual_data_1 = new_app.get_equity_data(ticker,
-                                                datetime.datetime(2019, 8, 27))
+        actual_data_1 = new_app.get_equity_data(ticker, dt_1)
         self.assertEqual(expected_data_1, actual_data_1)
+
+        new_app.close()
 
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_get_equity_data_for_multiple_securities(self, mock_scraper):
@@ -172,30 +156,12 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
         self.app.add_security('AMZN')
         self.app.add_security('GOOG')
 
-        with open('market_data/tests/test_data.json', 'r') as db:
-            test_data = json.load(db)
-
-        dict_data = test_data['AMZN']['27-Aug-2019']
-        expected_data_1 = EquityData(
-            open=dict_data['open'],
-            high=dict_data['high'],
-            low=dict_data['low'],
-            close=dict_data['close'],
-            adj_close=dict_data['adj_close'],
-            volume=dict_data['volume']
-        )
+        test_data = test_utils.load_test_data()
+        expected_data_1 = test_utils.get_test_data(test_data, 'AMZN', dt)
         mock_scraper.return_value = expected_data_1
         self.app.update_market_data('AMZN', dt)
 
-        dict_data = test_data['GOOG']['27-Aug-2019']
-        expected_data_2 = EquityData(
-            open=dict_data['open'],
-            high=dict_data['high'],
-            low=dict_data['low'],
-            close=dict_data['close'],
-            adj_close=dict_data['adj_close'],
-            volume=dict_data['volume']
-        )
+        expected_data_2 = test_utils.get_test_data(test_data, 'GOOG', dt)
         mock_scraper.return_value = expected_data_2
         self.app.update_market_data('GOOG', dt)
 
@@ -209,6 +175,8 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
 
         actual_data_1 = new_app.get_equity_data('AMZN', dt)
         self.assertEqual(expected_data_1, actual_data_1)
+
+        new_app.close()
 
 class EquityDataTests(unittest.TestCase):
 
@@ -259,7 +227,7 @@ class EquityDataTests(unittest.TestCase):
     # TODO(steve): should we split these two tests by
     # injecting the market data directly into the test database???
     def test_update_market_data_and_get_equity_data(self):
-        ticker, dt, expected_data = get_expected_equity_data()
+        ticker, dt, expected_data = test_utils.get_expected_equity_data()
         self.app.add_security(ticker)
 
         mock_method = 'market_data.scraper.Scraper.scrape_equity_data'
