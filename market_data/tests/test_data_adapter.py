@@ -226,26 +226,36 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
 class TextDataModelTests(unittest.TestCase):
 
     def test_equality(self):
+        dt = datetime.datetime(2019, 8, 27).strftime('%d-%b-%Y')
         data_1 = TextDataModel()
         data_1.securities = ['AMZN', 'GOOG', 'TLS.AX']
-        data_1.date = datetime.datetime(2019, 8, 27)
-        data_1.equity_data = get_expected_equity_data()
+        data_1.equity_data = {
+            'AMZN': {
+                dt : get_expected_equity_data()
+            }
+        }
 
         data_2 = TextDataModel()
         data_2.securities = ['AMZN', 'GOOG', 'TLS.AX']
-        data_2.date = datetime.datetime(2019, 8, 27)
-        data_2.equity_data = get_expected_equity_data()
+        data_2.equity_data = {
+            'AMZN': {
+                dt : get_expected_equity_data()
+            }
+        }
 
         self.assertEqual(data_1, data_2)
 
     def test_json_encoder_can_serialise_text_data_model(self):
         # set up
-        dt = datetime.datetime(2019, 8, 27)
+        dt = datetime.datetime(2019, 8, 27).strftime('%d-%b-%Y')
 
         data = TextDataModel()
         data.securities = ['AMZN', 'GOOG', 'TLS.AX']
-        data.date = dt
-        data.equity_data = get_expected_equity_data()
+        data.equity_data = {
+            'AMZN': {
+                dt: get_expected_equity_data()
+            }
+        }
 
         # method
         actual_data = json.dumps(data, default=TextDataModel.json_encoder)
@@ -253,14 +263,15 @@ class TextDataModelTests(unittest.TestCase):
         # expected output
         data_dict = {
             "securities": ['AMZN', 'GOOG', 'TLS.AX'],
-            'date': dt.strftime('%d-%b-%Y'),
-            "equity_data": {
-                'open': '1898.00',
-                'high': '1903.79',
-                'low': '1856.00',
-                'close': '1889.98',
-                'adj_close': '1889.98',
-                'volume': int(5718000)
+            'AMZN': {
+                dt: {
+                    'open': '1898.00',
+                    'high': '1903.79',
+                    'low': '1856.00',
+                    'close': '1889.98',
+                    'adj_close': '1889.98',
+                    'volume': int(5718000)
+                }
             }
         }
         json_data = json.dumps(data_dict)
@@ -270,21 +281,21 @@ class TextDataModelTests(unittest.TestCase):
 
     def test_json_decoder_can_deserialise_text_data_model(self):
         # set up
-        dt = datetime.datetime(2019, 8, 27)
+        dt = datetime.datetime(2019, 8, 27).strftime('%d-%b-%Y')
         data_dict = {
             "securities": ['AMZN', 'GOOG', 'TLS.AX'],
-            'date': dt.strftime('%d-%b-%Y'),
-            "equity_data": {
-                'open': '1898.00',
-                'high': '1903.79',
-                'low': '1856.00',
-                'close': '1889.98',
-                'adj_close': '1889.98',
-                'volume': int(5718000)
+            'AMZN': {
+                dt: {
+                    'open': '1898.00',
+                    'high': '1903.79',
+                    'low': '1856.00',
+                    'close': '1889.98',
+                    'adj_close': '1889.98',
+                    'volume': int(5718000)
+                }
             }
         }
         json_data = json.dumps(data_dict)
-
 
         # method
         actual_data = json.loads(json_data,
@@ -293,8 +304,11 @@ class TextDataModelTests(unittest.TestCase):
         # expected output
         expected_data = TextDataModel()
         expected_data.securities = ['AMZN', 'GOOG', 'TLS.AX']
-        expected_data.date = dt
-        expected_data.equity_data = get_expected_equity_data()
+        expected_data.equity_data = {
+            "AMZN": {
+                dt: get_expected_equity_data()
+            }
+        }
 
         # test
         self.assertEqual(expected_data, actual_data)

@@ -102,7 +102,6 @@ class TextDataModel:
 
     def __init__(self):
         self.securities = list()
-        self.date = None
         self.equity_data = EquityData()
 
     @classmethod
@@ -124,44 +123,44 @@ class TextDataModel:
         data = cls()
 
         data.securities = dict_data['securities']
+        data.equity_data = {}
+        for sec in data.securities:
+            if sec in dict_data:
+                data.equity_data[sec] = {}
+                for dt, equity_data in dict_data[sec].items():
+                    data.equity_data[sec][dt] = EquityData(
+                        open=equity_data['open'],
+                        high=equity_data['high'],
+                        low=equity_data['low'],
+                        close=equity_data['close'],
+                        adj_close=equity_data['adj_close'],
+                        volume=equity_data['volume']
+                    )
 
-        data.equity_data = EquityData(
-            open=dict_data['equity_data']['open'],
-            high=dict_data['equity_data']['high'],
-            low=dict_data['equity_data']['low'],
-            close=dict_data['equity_data']['close'],
-            adj_close=dict_data['equity_data']['adj_close'],
-            volume=dict_data['equity_data']['volume']
-        )
-
-        if 'date' in dict_data:
-            data.date = datetime.datetime.strptime(dict_data['date'],
-                                                   '%d-%b-%Y')
         return data
 
     def _to_dict(self):
         d = {}
 
         d['securities'] = self.securities
-
-        if self.date:
-            d['date'] = self.date.strftime('%d-%b-%Y')
-
-        d['equity_data'] = {
-            'open': str(self.equity_data.open),
-            'high': str(self.equity_data.high),
-            'low': str(self.equity_data.low),
-            'close': str(self.equity_data.close),
-            'adj_close': str(self.equity_data.adj_close),
-            'volume': self.equity_data.volume
-        }
+        for sec in self.securities:
+            if sec in self.equity_data:
+                d[sec] = {}
+                for dt, equity_data in self.equity_data[sec].items():
+                    d[sec][dt] = {
+                        'open': str(equity_data.open),
+                        'high': str(equity_data.high),
+                        'low': str(equity_data.low),
+                        'close': str(equity_data.close),
+                        'adj_close': str(equity_data.adj_close),
+                        'volume': equity_data.volume
+                    }
 
         return d
 
     def __eq__(self, other):
         return (self.securities == other.securities and
-                self.equity_data == other.equity_data and
-                self.date == other.date)
+                self.equity_data == other.equity_data)
 
 class DatabaseExistsError(Exception):
     pass
