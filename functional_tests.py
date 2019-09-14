@@ -83,8 +83,6 @@ class FunctionalTests(unittest.TestCase):
         # Satisfied with what he sees he closes the app
         new_app.close()
 
-        self.fail("NOT IMPLEMENTED!")
-
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_can_retreive_equity_data_on_app_reopen(self, mock_scrape):
         # Carol opens up the application and add

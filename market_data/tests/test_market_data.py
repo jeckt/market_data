@@ -165,7 +165,7 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
         self.assertEqual(expected_data_2, actual_data_2)
 
         actual_data_1 = new_app.get_equity_data(ticker,
-                                                datetime.datetime(2019, 8, 26))
+                                                datetime.datetime(2019, 8, 27))
         self.assertEqual(expected_data_1, actual_data_1)
 
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
