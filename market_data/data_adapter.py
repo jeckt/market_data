@@ -68,10 +68,8 @@ class DataAdapter:
     # TODO(steve): we need to check with this creates 
     # a race condition?!?! I'm confident that it does
     def insert_securities(self, securities_to_add):
-        securities = self.get_securities_list()
-        securities += securities_to_add
-        data = TextDataModel()
-        data.securities = list(set(securities))
+        data = DataAdapter._load_data(self.conn_string)
+        data.securities = list(set(data.securities + securities_to_add))
         for sec in securities_to_add:
             if not sec in data.equity_data:
                 data.equity_data[sec] = {}

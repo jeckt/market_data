@@ -117,12 +117,38 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
 
         tickers = self.database.get_securities_list()
         self.assertEqual(set(expected_tickers), set(tickers))
-        self.fail("UPDATE TEST TO THROW ERROR")
 
     def test_update_equity_data_for_security_not_in_list_raises_error(self):
         ticker = 'AMZN'
         with self.assertRaises(InvalidTickerError):
             self.database.update_market_data(ticker, None)
+
+    def test_insert_duplicate_security_does_not_erase_existing_data(self):
+        ticker = 'AMZN'
+        self.database.insert_securities([ticker])
+
+        with open('market_data/tests/test_data.json', 'r') as db:
+            test_data = json.load(db)
+
+        dict_data = test_data[ticker]['27-Aug-2019']
+        expected_data = EquityData(
+            open=dict_data['open'],
+            high=dict_data['high'],
+            low=dict_data['low'],
+            close=dict_data['close'],
+            adj_close=dict_data['adj_close'],
+            volume=dict_data['volume']
+        )
+        dt = datetime.datetime(2019, 8, 27)
+        self.database.update_market_data(ticker, (dt, expected_data))
+
+        actual_data = self.database.get_equity_data(ticker, dt)
+        self.assertEqual(expected_data, actual_data)
+
+        self.database.insert_securities([ticker])
+
+        actual_data = self.database.get_equity_data(ticker, dt)
+        self.assertEqual(expected_data, actual_data)
 
     def test_update_equity_data(self):
         ticker = 'AMZN'
