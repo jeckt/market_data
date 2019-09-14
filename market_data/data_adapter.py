@@ -72,16 +72,21 @@ class DataAdapter:
         securities += securities_to_add
         data = TextDataModel()
         data.securities = list(set(securities))
+        for sec in securities_to_add:
+            if not sec in data.equity_data:
+                data.equity_data[sec] = {}
 
         DataAdapter._save_data(self.conn_string, data)
 
-    def update_market_data(self, security, equity_data_series):
+    def update_market_data(self, security, equity_data):
         securities = self.get_securities_list()
         if security in securities:
-            data = TextDataModel()
-            data.securities = list(set(securities))
-            data.date = equity_data_series[0]
-            data.equity_data = equity_data_series[1]
+            data = DataAdapter._load_data(self.conn_string)
+            if security not in data.equity_data:
+                data.equity_data[security] = {}
+
+            dt_key = equity_data[0].strftime('%d-%b-%Y')
+            data.equity_data[security][dt_key] = equity_data[1]
 
             DataAdapter._save_data(self.conn_string, data)
         else:
@@ -91,8 +96,9 @@ class DataAdapter:
         if security in self.get_securities_list():
             data = DataAdapter._load_data(self.conn_string)
 
-            if data.date == dt:
-                return data.equity_data
+            dt_key = dt.strftime('%d-%b-%Y')
+            if dt_key in data.equity_data[security]:
+                return data.equity_data[security][dt_key]
             else:
                 raise InvalidDateError(dt)
         else:
@@ -102,7 +108,7 @@ class TextDataModel:
 
     def __init__(self):
         self.securities = list()
-        self.equity_data = EquityData()
+        self.equity_data = {}
 
     @classmethod
     def json_encoder(cls, o):

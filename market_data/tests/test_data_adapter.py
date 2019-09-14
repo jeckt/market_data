@@ -117,6 +117,7 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
 
         tickers = self.database.get_securities_list()
         self.assertEqual(set(expected_tickers), set(tickers))
+        self.fail("UPDATE TEST TO THROW ERROR")
 
     def test_update_equity_data_for_security_not_in_list_raises_error(self):
         ticker = 'AMZN'
@@ -164,7 +165,7 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
             adj_close=dict_data['adj_close'],
             volume=dict_data['volume']
         )
-        dt_2 = datetime.datetime(2019, 8, 27)
+        dt_2 = datetime.datetime(2019, 8, 26)
         self.database.update_market_data(ticker, (dt_2, expected_data_2))
 
         actual_data_2 = self.database.get_equity_data(ticker, dt_2)
