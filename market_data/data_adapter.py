@@ -9,8 +9,8 @@ from market_data.data import EquityData, InvalidTickerError, InvalidDateError
 # of the app??
 class DataAdapter:
 
-    test_database = 'testdb.txt'
-    prod_database = 'productiondb.txt'
+    test_database = 'testdb.json'
+    prod_database = 'productiondb.json'
 
     @classmethod
     def create_test_database(cls):

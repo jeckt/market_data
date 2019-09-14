@@ -68,9 +68,9 @@ class DataAdapterTests(unittest.TestCase):
         da.close()
 
     def test_connect_to_non_existing_database_throws_error(self):
-        self.assertFalse(os.path.isfile('newdb.txt'))
+        self.assertFalse(os.path.isfile('newdb.json'))
         with self.assertRaises(DatabaseNotFoundError):
-            DataAdapter.connect('newdb.txt')
+            DataAdapter.connect('newdb.json')
 
 class DataAdapterSecuritiesTests(unittest.TestCase):
 
