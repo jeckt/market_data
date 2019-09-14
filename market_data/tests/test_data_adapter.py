@@ -13,7 +13,7 @@ import json
 from market_data.data_adapter import DataAdapter, TextDataModel
 from market_data.data_adapter import DatabaseExistsError, DatabaseNotFoundError
 from market_data.data import EquityData, InvalidTickerError, InvalidDateError
-from market_data.tests.utils import get_expected_equity_data
+import market_data.tests.utils as test_utils
 
 class DataAdapterTestDatabaseTests(unittest.TestCase):
 
@@ -126,20 +126,11 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
     def test_insert_duplicate_security_does_not_erase_existing_data(self):
         ticker = 'AMZN'
         self.database.insert_securities([ticker])
+        test_data = test_utils.load_test_data()
 
-        with open('market_data/tests/test_data.json', 'r') as db:
-            test_data = json.load(db)
-
-        dict_data = test_data[ticker]['27-Aug-2019']
-        expected_data = EquityData(
-            open=dict_data['open'],
-            high=dict_data['high'],
-            low=dict_data['low'],
-            close=dict_data['close'],
-            adj_close=dict_data['adj_close'],
-            volume=dict_data['volume']
-        )
         dt = datetime.datetime(2019, 8, 27)
+        expected_data = test_utils.get_test_data(test_data, ticker, dt)
+
         self.database.update_market_data(ticker, (dt, expected_data))
 
         actual_data = self.database.get_equity_data(ticker, dt)
@@ -151,7 +142,7 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
         self.assertEqual(expected_data, actual_data)
 
     def test_update_equity_data(self):
-        ticker, dt, expected_data = get_expected_equity_data()
+        ticker, dt, expected_data = test_utils.get_expected_equity_data()
         self.database.insert_securities([ticker])
 
         self.database.update_market_data(ticker, (dt, expected_data))
@@ -159,37 +150,20 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
         actual_data = self.database.get_equity_data(ticker, dt)
         self.assertEqual(expected_data, actual_data)
 
-    # TODO(steve): check if this a duplication of the test in
-    # test_market_data.py. Very similar set up and tests???
+    # NOTE(steve): multiple dates and securities are not duplications
+    # of the market_data.py unit tests as these do not make calls
+    # to get the data but assumes the data is provided in the correct form
     def test_get_equity_data_after_multiple_dates_updates(self):
         ticker = 'AMZN'
         self.database.insert_securities([ticker])
 
-        with open('market_data/tests/test_data.json', 'r') as db:
-            test_data = json.load(db)
-
-        dict_data = test_data[ticker]['27-Aug-2019']
-        expected_data_1 = EquityData(
-            open=dict_data['open'],
-            high=dict_data['high'],
-            low=dict_data['low'],
-            close=dict_data['close'],
-            adj_close=dict_data['adj_close'],
-            volume=dict_data['volume']
-        )
+        test_data = test_utils.load_test_data()
         dt_1 = datetime.datetime(2019, 8, 27)
+        expected_data_1 = test_utils.get_test_data(test_data, ticker, dt_1)
         self.database.update_market_data(ticker, (dt_1, expected_data_1))
 
-        dict_data = test_data[ticker]['26-Aug-2019']
-        expected_data_2 = EquityData(
-            open=dict_data['open'],
-            high=dict_data['high'],
-            low=dict_data['low'],
-            close=dict_data['close'],
-            adj_close=dict_data['adj_close'],
-            volume=dict_data['volume']
-        )
         dt_2 = datetime.datetime(2019, 8, 26)
+        expected_data_2 = test_utils.get_test_data(test_data, ticker, dt_2)
         self.database.update_market_data(ticker, (dt_2, expected_data_2))
 
         actual_data_2 = self.database.get_equity_data(ticker, dt_2)
@@ -202,29 +176,11 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
         self.database.insert_securities(['AMZN', 'GOOG'])
         dt = datetime.datetime(2019, 8, 27)
 
-        with open('market_data/tests/test_data.json', 'r') as db:
-            test_data = json.load(db)
-
-        dict_data = test_data['AMZN']['27-Aug-2019']
-        expected_data_1 = EquityData(
-            open=dict_data['open'],
-            high=dict_data['high'],
-            low=dict_data['low'],
-            close=dict_data['close'],
-            adj_close=dict_data['adj_close'],
-            volume=dict_data['volume']
-        )
+        test_data = test_utils.load_test_data()
+        expected_data_1 = test_utils.get_test_data(test_data, 'AMZN', dt)
         self.database.update_market_data('AMZN', (dt, expected_data_1))
 
-        dict_data = test_data['GOOG']['27-Aug-2019']
-        expected_data_2 = EquityData(
-            open=dict_data['open'],
-            high=dict_data['high'],
-            low=dict_data['low'],
-            close=dict_data['close'],
-            adj_close=dict_data['adj_close'],
-            volume=dict_data['volume']
-        )
+        expected_data_2 = test_utils.get_test_data(test_data, 'GOOG', dt)
         self.database.update_market_data('GOOG', (dt, expected_data_2))
 
         actual_data_2 = self.database.get_equity_data('GOOG', dt)
@@ -250,43 +206,16 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
 
 class TextDataModelTests(unittest.TestCase):
 
-    def test_equality(self):
-        dt = datetime.datetime(2019, 8, 27).strftime('%d-%b-%Y')
-        _, _, equity_data = get_expected_equity_data()
+    def setUp(self):
+        ticker, dt, equity_data = test_utils.get_expected_equity_data()
+        self.ticker, self.dt, self.equity_data = ticker, dt, equity_data
+        self.date_string = dt.strftime('%d-%b-%Y')
 
-        data_1 = TextDataModel()
-        data_1.securities = ['AMZN', 'GOOG', 'TLS.AX']
-        data_1.equity_data = {
-            'AMZN': { dt : equity_data }
-        }
-
-        data_2 = TextDataModel()
-        data_2.securities = ['AMZN', 'GOOG', 'TLS.AX']
-        data_2.equity_data = {
-            'AMZN': { dt : equity_data }
-        }
-
-        self.assertEqual(data_1, data_2)
-
-    def test_json_encoder_can_serialise_text_data_model(self):
-        # set up
-        dt = datetime.datetime(2019, 8, 27).strftime('%d-%b-%Y')
-        _, _, equity_data = get_expected_equity_data()
-
-        data = TextDataModel()
-        data.securities = ['AMZN', 'GOOG', 'TLS.AX']
-        data.equity_data = {
-            'AMZN': { dt: equity_data }
-        }
-
-        # method
-        actual_data = json.dumps(data, default=TextDataModel.json_encoder)
-
-        # expected output
+    def get_json_from_dict_data(self):
         data_dict = {
-            "securities": ['AMZN', 'GOOG', 'TLS.AX'],
-            'AMZN': {
-                dt: {
+            "securities": [self.ticker, 'GOOG', 'TLS.AX'],
+            self.ticker: {
+                self.date_string: {
                     'open': '1898.00',
                     'high': '1903.79',
                     'low': '1856.00',
@@ -297,39 +226,46 @@ class TextDataModelTests(unittest.TestCase):
             }
         }
         json_data = json.dumps(data_dict)
+
+        return json_data
+
+    def get_text_data_model_data(self):
+        data = TextDataModel()
+        data.securities = [self.ticker, 'GOOG', 'TLS.AX']
+        data.equity_data = {
+            self.ticker: { self.date_string: self.equity_data }
+        }
+
+        return data
+
+    def test_equality(self):
+        data_1 = self.get_text_data_model_data()
+        data_2 = self.get_text_data_model_data()
+        self.assertEqual(data_1, data_2)
+
+    def test_json_encoder_can_serialise_text_data_model(self):
+        # set up
+        data = self.get_text_data_model_data()
+
+        # method
+        actual_data = json.dumps(data, default=TextDataModel.json_encoder)
+
+        # expected output
+        json_data = self.get_json_from_dict_data()
 
         # test
         self.assertEqual(json_data, actual_data)
 
     def test_json_decoder_can_deserialise_text_data_model(self):
         # set up
-        dt = datetime.datetime(2019, 8, 27).strftime('%d-%b-%Y')
-        data_dict = {
-            "securities": ['AMZN', 'GOOG', 'TLS.AX'],
-            'AMZN': {
-                dt: {
-                    'open': '1898.00',
-                    'high': '1903.79',
-                    'low': '1856.00',
-                    'close': '1889.98',
-                    'adj_close': '1889.98',
-                    'volume': int(5718000)
-                }
-            }
-        }
-        json_data = json.dumps(data_dict)
+        json_data = self.get_json_from_dict_data()
 
         # method
         actual_data = json.loads(json_data,
                                  object_hook=TextDataModel.json_decoder)
 
         # expected output
-        _, _, equity_data = get_expected_equity_data()
-        expected_data = TextDataModel()
-        expected_data.securities = ['AMZN', 'GOOG', 'TLS.AX']
-        expected_data.equity_data = {
-            "AMZN": { dt: equity_data }
-        }
+        expected_data = self.get_text_data_model_data()
 
         # test
         self.assertEqual(expected_data, actual_data)
