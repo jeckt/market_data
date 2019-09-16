@@ -7,14 +7,6 @@ import market_data.app as app
 
 class CommandLineInterfaceTests(unittest.TestCase):
 
-    def get_menu_options(self):
-        return """
-        Please select from the following options:
-                1. View Securities
-                2. Add a Security
-                3. Quit
-        """
-
     @patch('builtins.input', autospec=True)
     def test_add_securities_and_view_securities(self, mock_input):
         # Alex has heard about this new command line app that can
@@ -40,13 +32,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
 
             # Upon providing the database connection string he is able 
             # to move on to the next screen in the app.
-            msg = """
-            A new database has been created: testdb.json.
-
-            Welcome!
-
-            """
-            msg += self.get_menu_options()
+            msg = app.get_new_database_created_msg('testdb.json')
             mock_print.assert_called_with(msg)
 
         with patch('builtins.print', autospec=True) as mock_print:
@@ -60,7 +46,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
             Currently no securities have been added to database.
 
             """
-            msg += self.get_menu_options()
+            msg += app.MENU_OPTIONS
             mock_print.assert_called_with(msg)
 
         with patch('builtins.print', autospec=True) as mock_print:
@@ -95,7 +81,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
             """
             mock_input.assert_called_with(msg)
 
-            msg = self.get_menu_options()
+            msg = app.MENU_OPTIONS
             mock_print.assert_called_with(msg)
 
         with patch('builtins.print', autospec=True) as mock_print:
@@ -110,7 +96,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
             """
             mock_input.assert_called_with('Option: ')
 
-            msg += self.get_menu_options()
+            msg += app.MENU_OPTIONS
             mock_print.assert_called_with(msg)
 
         with patch('builtins.print', autospec=True) as mock_print:
