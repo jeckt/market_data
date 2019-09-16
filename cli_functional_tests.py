@@ -25,20 +25,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
 
             # Upon opening it, he is told that he has not specified
             # a database for the application to hook up to.
-            msg = """
-            Market Data is command line application provides collection,
-            storage and retrieval of financial market data.
-
-            To use the application either use the following commands:
-                $ ./market_data/app.py $DATABASE_CONNECTION
-            or
-                $ python market_data/app.py $DATABASE_CONNECTION
-
-            where $DATABASE_CONNECTION is the location of the json
-            database connection file. If the file does not exist
-            the application will create it.
-            """
-            mock_print.assert_called_with(msg)
+            mock_print.assert_called_with(app.NO_DATABASE_SPECIFIED_MESSAGE)
 
         # Reading through the help provided, Alex decides to give it another
         # go and this time provides a database connection for the app to
