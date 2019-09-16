@@ -25,7 +25,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
 
             # Upon opening it, he is told that he has not specified
             # a database for the application to hook up to.
-            mock_print.assert_called_with(app.NO_DATABASE_SPECIFIED_MESSAGE)
+            mock_print.assert_called_with(app.NO_DATABASE_SPECIFIED_MSG)
 
         # Reading through the help provided, Alex decides to give it another
         # go and this time provides a database connection for the app to
