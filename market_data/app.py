@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import sys
+from market_data.market_data import MarketData
+from market_data.data_adapter import DatabaseNotFoundError
 
 MENU_OPTIONS = """
     Please select from the following options:
@@ -41,7 +43,13 @@ def get_load_existing_database_msg(db):
 
 def main():
     if len(sys.argv) > 1:
-        print(get_new_database_created_msg(sys.argv[1]))
+        conn_string = sys.argv[1]
+        app = MarketData()
+        try:
+            app.run(conn_string)
+            print(get_load_existing_database_msg(conn_string))
+        except DatabaseNotFoundError:
+            print(get_new_database_created_msg(conn_string))
     else:
         print(NO_DATABASE_SPECIFIED_MSG)
 

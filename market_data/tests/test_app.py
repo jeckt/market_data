@@ -33,7 +33,7 @@ class AppTests(unittest.TestCase):
 
         msg = app.get_new_database_created_msg(self.database)
         mock_print.assert_called_with(msg)
-        self.assertTrue(os.path.isfile(db))
+        self.assertTrue(os.path.isfile(self.database))
 
         os.remove(db)
 
