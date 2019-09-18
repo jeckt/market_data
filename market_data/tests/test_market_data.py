@@ -93,9 +93,18 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
     def test_create_production_database_by_default(self):
         self.assertEqual([], self.app.get_securities_list())
 
-    def test_raise_database_not_found_error(self):
-        with self.assertRaises(DatabaseNotFoundError):
-            self.app.run(database='db.json')
+    def test_create_database_if_database_not_found(self):
+        self.app.run(database='db.json')
+
+        ticker = 'TLS'
+        self.app.add_security(ticker)
+        self.app.close()
+
+        new_app = MarketData()
+        new_app.run(database='db.json')
+        tickers = new_app.get_securities_list()
+        new_app.close()
+        self.assertEqual([ticker], tickers)
 
     @patch('market_data.data_adapter.DataAdapter.close', autospec=True)
     def test_data_adaptor_closed_on_app_close(self, mock_close):

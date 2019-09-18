@@ -14,7 +14,10 @@ class MarketData:
     def run(self, database=None):
         self.init = True
         self._scraper = Scraper('yahoo')
-        self._database = DataAdapter.connect(database)
+        try:
+            self._database = DataAdapter.connect(database)
+        except DatabaseNotFoundError:
+            DataAdapter.create_database(database)
 
     # NOTE(steve): this method will be used to clean up
     # all the dependency e.g. closing of the database

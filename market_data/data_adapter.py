@@ -17,7 +17,7 @@ class DataAdapter:
         if os.path.isfile(cls.test_database):
             raise DatabaseExistsError(cls.test_database)
 
-        cls._create_database(cls.test_database)
+        cls.create_database(cls.test_database)
 
     @classmethod
     def delete_test_database(cls):
@@ -31,15 +31,17 @@ class DataAdapter:
         if conn_string is None:
             conn_string = cls.prod_database
             if not os.path.isfile(conn_string):
-                cls._create_database(conn_string)
+                cls.create_database(conn_string)
 
         if not os.path.isfile(conn_string):
             raise DatabaseNotFoundError(conn_string)
 
         return cls(conn_string)
 
+    # TODO(steve): need to write unit tests around this method
+    # what happens if this is not a valid path or file extension???
     @classmethod
-    def _create_database(cls, database):
+    def create_database(cls, database):
         cls._save_data(database, TextDataModel())
 
     @classmethod
