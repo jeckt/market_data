@@ -2,7 +2,7 @@
 
 import sys
 from market_data.market_data import MarketData
-from market_data.data_adapter import DatabaseNotFoundError
+from market_data.data_adapter import DataAdapter, DatabaseNotFoundError
 
 MENU_OPTIONS = """
     Please select from the following options:
@@ -49,6 +49,8 @@ def main():
             app.run(conn_string)
             print(get_load_existing_database_msg(conn_string))
         except DatabaseNotFoundError:
+            DataAdapter.create_database(conn_string)
+            app.run(conn_string)
             print(get_new_database_created_msg(conn_string))
     else:
         print(NO_DATABASE_SPECIFIED_MSG)

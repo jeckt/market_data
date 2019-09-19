@@ -35,7 +35,7 @@ class AppTests(unittest.TestCase):
         mock_print.assert_called_with(msg)
         self.assertTrue(os.path.isfile(self.database))
 
-        os.remove(db)
+        os.remove(self.database)
 
     @patch('builtins.print', autospec=True)
     def test_app_loads_existing_database(self, mock_print):
