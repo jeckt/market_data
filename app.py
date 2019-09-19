@@ -11,6 +11,11 @@ MENU_OPTIONS = """
         3. Quit
 """
 
+INVALID_MENU_OPTION_MSG = """
+    The option selected is invalid.
+"""
+INVALID_MENU_OPTION_MSG += MENU_OPTIONS
+
 NO_DATABASE_SPECIFIED_MSG = """
     Market Data is command line application that provides
     collection, storage and retrieval of financial market data.
@@ -41,6 +46,11 @@ def get_new_database_created_msg(db):
 def get_load_existing_database_msg(db):
     return DATABASE_LOADED_MSG.format(db)
 
+def process_user_input():
+    user_input = input("Option: ")
+    print(INVALID_MENU_OPTION_MSG)
+    return True
+
 def main():
     if len(sys.argv) > 1:
         conn_string = sys.argv[1]
@@ -52,8 +62,13 @@ def main():
             DataAdapter.create_database(conn_string)
             app.run(conn_string)
             print(get_new_database_created_msg(conn_string))
+
+        return True
     else:
         print(NO_DATABASE_SPECIFIED_MSG)
+        return False
 
+# TODO(steve): Is this really the most efficient/clean way to do this?!?
 if __name__ == '__main__':
-    main()
+    if not main(): sys.exit(0)
+    while process_user_input(): pass

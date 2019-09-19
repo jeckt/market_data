@@ -11,6 +11,9 @@ class MarketData:
     # NOTE(steve): this method will be used to initialise all 
     # the dependencies before the user can use the application
     # this is where we will throw dependency errors as well
+    # TODO(steve): the DataAdapter should be passed into the 
+    # MarketData class not a connection string to connect to
+    # the database
     def run(self, database=None):
         self.init = True
         self._scraper = Scraper('yahoo')
