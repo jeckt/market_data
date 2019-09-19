@@ -11,7 +11,7 @@ from unittest.mock import patch
 import app
 from market_data.data_adapter import DataAdapter
 
-class AppUserInputTests(unittest.TestCase):
+class AppMainMenuTests(unittest.TestCase):
 
     def setUp(self):
         self.database = DataAdapter.test_database
@@ -25,11 +25,23 @@ class AppUserInputTests(unittest.TestCase):
         app.main()
 
         with patch('builtins.input', autospec=True) as mock_input:
-            mock_input.return_value = 4
+            mock_input.return_value = -1
             running = app.process_user_input()
-            mock_input.assert_called_with("Option: ")
+            mock_input.assert_called_with(app.USER_OPTION_INPUT)
             mock_print.assert_called_with(app.INVALID_MENU_OPTION_MSG)
             self.assertTrue(running)
+
+    @patch('builtins.print', autospec=True)
+    def test_quit_option_selected_exits_app(self, mock_print):
+        sys.argv = ['./app.py', self.database]
+        app.main()
+
+        with patch('builtins.input', autospec=True) as mock_input:
+            mock_input.return_value = app.QUIT_SELECTED
+            running = app.process_user_input()
+            mock_input.assert_called_with(app.USER_OPTION_INPUT)
+            mock_print.assert_called_with(app.QUIT_MSG)
+            self.assertFalse(running)
 
 class AppDatabaseTests(unittest.TestCase):
 

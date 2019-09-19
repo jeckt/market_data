@@ -4,8 +4,15 @@ import unittest
 from unittest.mock import patch
 import sys
 import app
+from market_data.data_adapter import DataAdapter
 
 class CommandLineInterfaceTests(unittest.TestCase):
+
+    def setUp(self):
+        self.database = DataAdapter.test_database
+
+    def tearDown(self):
+        DataAdapter.delete_test_database()
 
     @patch('builtins.input', autospec=True)
     def test_add_securities_and_view_securities(self, mock_input):
@@ -25,14 +32,14 @@ class CommandLineInterfaceTests(unittest.TestCase):
         # NOTE(steve): we patch the process user input function here
         # so that we can control the loop later in the test otherwise
         # we would not be able to test the changes in user input requests
-        sys.argv = ['./app.py', 'testdb.json']
+        sys.argv = ['./app.py', self.database]
         with patch('builtins.print', autospec=True) as mock_print:
             with patch('app.process_user_input', autospec=True):
                 app.main()
 
             # Upon providing the database connection string he is able 
             # to move on to the next screen in the app.
-            msg = app.get_new_database_created_msg('testdb.json')
+            msg = app.get_new_database_created_msg(self.database)
             mock_print.assert_called_with(msg)
 
         with patch('builtins.print', autospec=True) as mock_print:
