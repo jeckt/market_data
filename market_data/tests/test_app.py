@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.split(os.path.split(file_path)[0])[0])
 
 import unittest
 from unittest.mock import patch
-import market_data.app as app
+import app
 
 class AppTests(unittest.TestCase):
 
@@ -21,13 +21,13 @@ class AppTests(unittest.TestCase):
 
     @patch('builtins.print', autospec=True)
     def test_app_terminates_if_no_database_provided(self, mock_print):
-        sys.argv = ['./market_data/app.py']
+        sys.argv = ['./app.py']
         app.main()
         mock_print.assert_called_with(app.NO_DATABASE_SPECIFIED_MSG)
 
     @patch('builtins.print', autospec=True)
     def test_app_creates_database_on_database_not_found(self, mock_print):
-        sys.argv = ['./market_data/app.py', self.database]
+        sys.argv = ['./app.py', self.database]
 
         app.main()
 

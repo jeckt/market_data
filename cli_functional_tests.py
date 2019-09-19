@@ -3,7 +3,7 @@
 import unittest
 from unittest.mock import patch
 import sys
-import market_data.app as app
+import app
 
 class CommandLineInterfaceTests(unittest.TestCase):
 
@@ -11,7 +11,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
     def test_add_securities_and_view_securities(self, mock_input):
         # Alex has heard about this new command line app that can
         # store financial market data for him. He decides to open it
-        # NOTE(steve): simulates ./market_data/app.py call on command line
+        # NOTE(steve): simulates ./app.py call on command line
         with patch('builtins.print', autospec=True) as mock_print:
             app.main()
 
@@ -25,9 +25,9 @@ class CommandLineInterfaceTests(unittest.TestCase):
         # NOTE(steve): we patch the process user input function here
         # so that we can control the loop later in the test otherwise
         # we would not be able to test the changes in user input requests
-        sys.argv = ['./market_data/app.py', 'testdb.json']
+        sys.argv = ['./app.py', 'testdb.json']
         with patch('builtins.print', autospec=True) as mock_print:
-            with patch('market_data.app.process_user_input', autospec=True):
+            with patch('app.process_user_input', autospec=True):
                 app.main()
 
             # Upon providing the database connection string he is able 
@@ -65,7 +65,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
             """
             mock_input.assert_called_with(msg)
 
-            msg = """
+            mse = """
             AMZN has been added.
 
             """
