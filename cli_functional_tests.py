@@ -47,20 +47,14 @@ class CommandLineInterfaceTests(unittest.TestCase):
 
         # Curious to see if there are any securities in the app already
         # he select option 1 to view the securities.
-        user_input.append('1')
-        expected_output.append('Option: ')
-
-        msg = """
-        Currently no securities have been added to database.
-
-        """
-        msg += app.MENU_OPTIONS
-        expected_output.append(msg)
+        user_input.append(app.VIEW_SECURITIES_OPTION)
+        expected_output.append(app.USER_OPTION_INPUT)
+        expected_output.append(app.VIEW_NO_SECURITIES)
 
         # As expected there are no securities so he proceeds to option
         # 2 to add securities
         user_input.append('2')
-        expected_output.append('Option: ')
+        expected_output.append(app.USER_OPTION_INPUT)
 
         # He adds AMZN to the database
         user_input.append('AMZN')
@@ -87,8 +81,8 @@ class CommandLineInterfaceTests(unittest.TestCase):
         expected_output.append(msg)
 
         # He now checks that the security has been added to the list
-        user_input.append('1')
-        expected_output.append('Option: ')
+        user_input.append(app.VIEW_NO_SECURITIES)
+        expected_output.append(app.USER_OPTION_INPUT)
 
         msg = """
         The following securities are in the database:
@@ -100,22 +94,18 @@ class CommandLineInterfaceTests(unittest.TestCase):
         expected_output.append(msg)
 
         # Satisfied with the results he closes the application
-        user_input.append('3')
-        expected_output.append('Option: ')
-
-        msg = """
-        Thank you for using the Market Data Application. Bye!
-        """
-        expected_output.append(msg)
+        user_input.append(app.QUIT_OPTION)
+        expected_output.append(app.USER_OPTION_INPUT)
+        expected_output.append(app.QUIT_MSG)
 
         # Method
         sys.argv = ['./app.py', self.database]
         app.main()
 
         # Tests
-        self.assertEqual(len(actual_output), len(expected_output))
         for actual, expected in zip(actual_output, expected_output):
             self.assertEqual(actual, expected)
+        self.assertEqual(len(actual_output), len(expected_output))
 
 if __name__ == '__main__':
     unittest.main()

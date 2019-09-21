@@ -44,9 +44,15 @@ QUIT_MSG = """
     Thank you for using the Market Data Application. Goodbye!
 """
 
-USER_OPTION_INPUT = 'Option: '
-QUIT_SELECTED = '3'
+VIEW_NO_SECURITIES = """
+Currently no securities have been added to database.
 
+"""
+VIEW_NO_SECURITIES += MENU_OPTIONS
+
+USER_OPTION_INPUT = 'Option: '
+QUIT_OPTION = '3'
+VIEW_SECURITIES_OPTION = '1'
 
 def get_new_database_created_msg(db):
     return NEW_DATABASE_CREATED_MSG.format(db)
@@ -55,13 +61,16 @@ def get_load_existing_database_msg(db):
     return DATABASE_LOADED_MSG.format(db)
 
 def process_user_input():
-    user_input = input("Option: ")
-    if user_input == QUIT_SELECTED:
+    user_input = input(USER_OPTION_INPUT)
+    if user_input == QUIT_OPTION:
         print(QUIT_MSG)
         return False
+    elif user_input == VIEW_SECURITIES_OPTION:
+        print(VIEW_NO_SECURITIES)
     else:
         print(INVALID_MENU_OPTION_MSG)
-        return True
+
+    return True
 
 def main():
     if len(sys.argv) > 1:

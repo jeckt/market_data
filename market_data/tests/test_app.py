@@ -29,44 +29,56 @@ class AppMainMenuTests(unittest.TestCase):
         app.input = mock_input
         app.print = lambda s: self.actual_output.append(s)
 
+        msg = app.get_new_database_created_msg(self.database)
+        self.expected_output.append(msg)
+        self.expected_output.append(app.USER_OPTION_INPUT)
+
     def tearDown(self):
         try:
             DataAdapter.delete_test_database()
         except:
             pass
 
-    def test_invalid_menu_option_selected(self):
-        self.user_input.append('-1')
-        self.user_input.append(app.QUIT_SELECTED)
-
-        sys.argv = ['./app.py', self.database]
-        app.main()
-
-        msg = app.get_new_database_created_msg(self.database)
-        self.expected_output.append(msg)
-        self.expected_output.append(app.USER_OPTION_INPUT)
-        self.expected_output.append(app.INVALID_MENU_OPTION_MSG)
-        self.expected_output.append(app.USER_OPTION_INPUT)
-        self.expected_output.append(app.QUIT_MSG)
-
+    def check_output(self):
         for actual, expected in zip(self.actual_output, self.expected_output):
             self.assertEqual(actual, expected)
         self.assertEqual(len(self.actual_output), len(self.expected_output))
 
     def test_quit_option_selected_exits_app(self):
-        self.user_input.append(app.QUIT_SELECTED)
+        self.user_input.append(app.QUIT_OPTION)
 
         sys.argv = ['./app.py', self.database]
         app.main()
 
-        msg = app.get_new_database_created_msg(self.database)
-        self.expected_output.append(msg)
+        self.expected_output.append(app.QUIT_MSG)
+
+        self.check_output()
+
+    def test_invalid_menu_option_selected(self):
+        self.user_input.append('-1')
+        self.user_input.append(app.QUIT_OPTION)
+
+        sys.argv = ['./app.py', self.database]
+        app.main()
+
+        self.expected_output.append(app.INVALID_MENU_OPTION_MSG)
         self.expected_output.append(app.USER_OPTION_INPUT)
         self.expected_output.append(app.QUIT_MSG)
 
-        for actual, expected in zip(self.actual_output, self.expected_output):
-            self.assertEqual(actual, expected)
-        self.assertEqual(len(self.actual_output), len(self.expected_output))
+        self.check_output()
+
+    def test_view_securities_with_no_securities_loaded(self):
+        self.user_input.append(app.VIEW_SECURITIES_OPTION)
+        self.user_input.append(app.QUIT_OPTION)
+
+        sys.argv = ['./app.py', self.database]
+        app.main()
+
+        self.expected_output.append(app.VIEW_NO_SECURITIES)
+        self.expected_output.append(app.USER_OPTION_INPUT)
+        self.expected_output.append(app.QUIT_MSG)
+
+        self.check_output()
 
 class AppDatabaseTests(unittest.TestCase):
 
