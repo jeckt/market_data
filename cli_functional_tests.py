@@ -35,71 +35,61 @@ class CommandLineInterfaceTests(unittest.TestCase):
         # Reading through the help provided, Alex decides to give it another
         # go and this time provides a database connection for the app to
         # create a new database file
-        # NOTE(steve): we patch the process user input function here
-        # so that we can control the loop later in the test otherwise
-        # we would not be able to test the changes in user input requests
+        sys.argv = ['./app.py', self.database]
         expected_output, actual_output = [], []
         user_input = []
 
         # Upon providing the database connection string he is able 
         # to move on to the next screen in the app.
         expected_output.append(app.get_new_database_created_msg(self.database))
+        expected_output.append(app.MENU_OPTIONS)
+        expected_output.append(app.USER_OPTION_INPUT)
 
         # Curious to see if there are any securities in the app already
-        # he select option 1 to view the securities.
+        # he selects option 1 to view the securities.
         user_input.append(app.VIEW_SECURITIES_OPTION)
-        expected_output.append(app.USER_OPTION_INPUT)
         expected_output.append(app.VIEW_NO_SECURITIES)
+        expected_output.append(app.MENU_OPTIONS)
+        expected_output.append(app.USER_OPTION_INPUT)
 
         # As expected there are no securities so he proceeds to option
         # 2 to add securities
         user_input.append('2')
-        expected_output.append(app.USER_OPTION_INPUT)
-
-        # He adds AMZN to the database
-        user_input.append('AMZN')
         msg = """
         Please type in the Yahoo ticker for the security you want to add:
         """
         expected_output.append(msg)
 
-        msg = """
-        AMZN has been added.
-
-        """
+        # He adds AMZN to the database
+        user_input.append('AMZN')
+        msg = 'AMZN has been added'
+        expected_output.append(msg)
+        msg = 'Would you please to add another security? [y/n]: '
         expected_output.append(msg)
 
         # He is then asked if he would like to add another security. 
         # Happy with just adding he selects 'n'
         user_input.append('n')
-        msg = """
-        Would you please to add another security? [y/n]:
-        """
-        expected_output.append(msg)
-
-        msg = app.MENU_OPTIONS
-        expected_output.append(msg)
+        expected_output.append(app.MENU_OPTIONS)
+        expected_output.append(app.USER_OPTION_INPUT)
 
         # He now checks that the security has been added to the list
         user_input.append(app.VIEW_NO_SECURITIES)
-        expected_output.append(app.USER_OPTION_INPUT)
-
         msg = """
         The following securities are in the database:
 
             1. AMZN
 
         """
-        msg += app.MENU_OPTIONS
         expected_output.append(msg)
+        expected_output.append(app.MENU_OPTIONS)
+        expected_output.append(app.USER_OPTION_INPUT)
 
         # Satisfied with the results he closes the application
         user_input.append(app.QUIT_OPTION)
-        expected_output.append(app.USER_OPTION_INPUT)
         expected_output.append(app.QUIT_MSG)
 
         # Method
-        sys.argv = ['./app.py', self.database]
         app.main()
 
         # Tests
