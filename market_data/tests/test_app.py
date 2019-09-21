@@ -7,10 +7,14 @@ file_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
 sys.path.insert(0, os.path.split(os.path.split(file_path)[0])[0])
 
 import unittest
-from unittest import skip
 from unittest.mock import patch
 import app
 from market_data.data_adapter import DataAdapter
+
+def check_output(actual_output, expected_output):
+    for actual, expected in zip(actual_output, expected_output):
+        assert actual == expected
+    assert len(actual_output) == len(expected_output)
 
 class AppMainMenuTests(unittest.TestCase):
 
@@ -31,6 +35,7 @@ class AppMainMenuTests(unittest.TestCase):
 
         msg = app.get_new_database_created_msg(self.database)
         self.expected_output.append(msg)
+        self.expected_output.append(app.MENU_OPTIONS)
         self.expected_output.append(app.USER_OPTION_INPUT)
 
     def tearDown(self):
@@ -38,11 +43,6 @@ class AppMainMenuTests(unittest.TestCase):
             DataAdapter.delete_test_database()
         except:
             pass
-
-    def check_output(self):
-        for actual, expected in zip(self.actual_output, self.expected_output):
-            self.assertEqual(actual, expected)
-        self.assertEqual(len(self.actual_output), len(self.expected_output))
 
     def test_quit_option_selected_exits_app(self):
         self.user_input.append(app.QUIT_OPTION)
@@ -52,7 +52,7 @@ class AppMainMenuTests(unittest.TestCase):
 
         self.expected_output.append(app.QUIT_MSG)
 
-        self.check_output()
+        check_output(self.actual_output, self.expected_output)
 
     def test_invalid_menu_option_selected(self):
         self.user_input.append('-1')
@@ -62,10 +62,11 @@ class AppMainMenuTests(unittest.TestCase):
         app.main()
 
         self.expected_output.append(app.INVALID_MENU_OPTION_MSG)
+        self.expected_output.append(app.MENU_OPTIONS)
         self.expected_output.append(app.USER_OPTION_INPUT)
         self.expected_output.append(app.QUIT_MSG)
 
-        self.check_output()
+        check_output(self.actual_output, self.expected_output)
 
     def test_view_securities_with_no_securities_loaded(self):
         self.user_input.append(app.VIEW_SECURITIES_OPTION)
@@ -75,38 +76,43 @@ class AppMainMenuTests(unittest.TestCase):
         app.main()
 
         self.expected_output.append(app.VIEW_NO_SECURITIES)
+        self.expected_output.append(app.MENU_OPTIONS)
         self.expected_output.append(app.USER_OPTION_INPUT)
         self.expected_output.append(app.QUIT_MSG)
 
-        self.check_output()
+        check_output(self.actual_output, self.expected_output)
 
 class AppDatabaseTests(unittest.TestCase):
 
     def setUp(self):
         self.database = 'testdb.json'
+        self.actual_output = []
+        self.expected_output = []
+        app.print = lambda s: self.actual_output.append(s)
 
     def tearDown(self):
         if os.path.isfile(self.database):
             os.remove(self.database)
 
-    @patch('builtins.print', autospec=True)
-    def test_app_terminates_if_no_database_provided(self, mock_print):
+    def test_app_terminates_if_no_database_provided(self):
         sys.argv = ['./app.py']
         app.main()
-        mock_print.assert_called_with(app.NO_DATABASE_SPECIFIED_MSG)
 
-    @patch('builtins.print', autospec=True)
-    def test_app_creates_database_on_database_not_found(self, mock_print):
+        self.expected_output.append(app.NO_DATABASE_SPECIFIED_MSG)
+        check_output(self.actual_output, self.expected_output)
+
+    def test_app_creates_database_on_database_not_found(self):
         with patch('app.process_user_input', autospec=True) as mock_proc:
             mock_proc.return_value = False
             sys.argv = ['./app.py', self.database]
             app.main()
 
         msg = app.get_new_database_created_msg(self.database)
-        mock_print.assert_called_with(msg)
-        self.assertTrue(os.path.isfile(self.database))
+        self.expected_output.append(msg)
+        self.expected_output.append(app.MENU_OPTIONS)
 
-        os.remove(self.database)
+        check_output(self.actual_output, self.expected_output)
+        self.assertTrue(os.path.isfile(self.database))
 
     @patch('builtins.print', autospec=True)
     def test_app_loads_existing_database(self, mock_print):
@@ -119,9 +125,10 @@ class AppDatabaseTests(unittest.TestCase):
             app.main()
 
         msg = app.get_load_existing_database_msg(self.database)
-        mock_print.assert_called_with(msg)
+        self.expected_output.append(msg)
+        self.expected_output.append(app.MENU_OPTIONS)
 
-        os.remove(self.database)
+        check_output(self.actual_output, self.expected_output)
 
 if __name__ == '__main__':
     unittest.main()
