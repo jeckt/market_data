@@ -40,6 +40,14 @@ DATABASE_LOADED_MSG = """
 """
 DATABASE_LOADED_MSG += MENU_OPTIONS
 
+QUIT_MSG = """
+    Thank you for using the Market Data Application. Goodbye!
+"""
+
+USER_OPTION_INPUT = 'Option: '
+QUIT_SELECTED = '3'
+
+
 def get_new_database_created_msg(db):
     return NEW_DATABASE_CREATED_MSG.format(db)
 
@@ -48,8 +56,12 @@ def get_load_existing_database_msg(db):
 
 def process_user_input():
     user_input = input("Option: ")
-    print(INVALID_MENU_OPTION_MSG)
-    return True
+    if user_input == QUIT_SELECTED:
+        print(QUIT_MSG)
+        return False
+    else:
+        print(INVALID_MENU_OPTION_MSG)
+        return True
 
 def main():
     if len(sys.argv) > 1:
@@ -63,12 +75,11 @@ def main():
             app.run(conn_string)
             print(get_new_database_created_msg(conn_string))
 
-        return True
+        # TODO(steve): probably better to use a running global parameter
+        # to make it more readable
+        while process_user_input(): pass
     else:
         print(NO_DATABASE_SPECIFIED_MSG)
-        return False
 
-# TODO(steve): Is this really the most efficient/clean way to do this?!?
 if __name__ == '__main__':
-    if not main(): sys.exit(0)
-    while process_user_input(): pass
+    main()

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import unittest
-from unittest.mock import patch
 import sys
 import app
 from market_data.data_adapter import DataAdapter
