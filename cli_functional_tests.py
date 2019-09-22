@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
 import unittest
+from unittest.mock import patch
 import sys
 import app
 from market_data.data_adapter import DataAdapter
 
+# TODO(steve): we need to rethink how we expose the app messages,
+# options and methods to users (even in testing!!!)
 class CommandLineInterfaceTests(unittest.TestCase):
 
     def setUp(self):
@@ -48,7 +51,10 @@ class CommandLineInterfaceTests(unittest.TestCase):
         # Curious to see if there are any securities in the app already
         # he selects option 1 to view the securities.
         user_input.append(app.VIEW_SECURITIES_OPTION)
-        expected_output.append(app.VIEW_NO_SECURITIES)
+        mock_method = 'market_data.market_data.MarketData.get_securities_list'
+        with patch(mock_method, autospec=True) as mock_tickers:
+            mock_tickers.return_value = []
+            expected_output.append(app.get_view_securities_msg())
         expected_output.append(app.MENU_OPTIONS)
         expected_output.append(app.USER_OPTION_INPUT)
 
@@ -64,14 +70,11 @@ class CommandLineInterfaceTests(unittest.TestCase):
         expected_output.append(app.USER_OPTION_INPUT)
 
         # He now checks that the security has been added to the list
-        user_input.append(app.VIEW_NO_SECURITIES)
-        msg = """
-        The following securities are in the database:
-
-            1. AMZN
-
-        """
-        expected_output.append(msg)
+        user_input.append(app.VIEW_SECURITIES_OPTION)
+        mock_method = 'market_data.market_data.MarketData.get_securities_list'
+        with patch(mock_method, autospec=True) as mock_tickers:
+            mock_tickers.return_value = ['AMZN']
+            expected_output.append(app.get_view_securities_msg())
         expected_output.append(app.MENU_OPTIONS)
         expected_output.append(app.USER_OPTION_INPUT)
 

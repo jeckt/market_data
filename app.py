@@ -31,19 +31,19 @@ NEW_DATABASE_CREATED_MSG = 'Welcome! A new database has been created: {0}'
 
 DATABASE_LOADED_MSG = 'Welcome! Database {0} has been loaded'
 
-QUIT_MSG = 'Thank you for using the Market Data Application. Goodbye!'
+QUIT_MSG = '\nThank you for using the Market Data Application. Goodbye!'
 
-VIEW_NO_SECURITIES = 'Currently no securities have been added to database.'
+VIEW_NO_SECURITIES = '\nCurrently no securities have been added to database.'
 
-ADD_SECURITY_INPUT = """
-Please type in the Yahoo ticker for the security you want to add:
-"""
-SECURITY_ADDED_MSG = '{0} has been added'
+ADD_SECURITY_INPUT = 'Enter Yahoo ticker for the security you want to add: '
+SECURITY_ADDED_MSG = '\n{0} has been added'
 
 USER_OPTION_INPUT = 'Option: '
 VIEW_SECURITIES_OPTION = '1'
 ADD_SECURITIES_OPTION = '2'
 QUIT_OPTION = '3'
+
+app = MarketData()
 
 def get_new_database_created_msg(db):
     return NEW_DATABASE_CREATED_MSG.format(db)
@@ -54,6 +54,17 @@ def get_load_existing_database_msg(db):
 def get_security_added_msg(ticker):
     return SECURITY_ADDED_MSG.format(ticker)
 
+def get_view_securities_msg():
+    tickers = app.get_securities_list()
+    if len(tickers) > 0:
+        msg = '\nThe following securities are in the database:\n\n'
+        for num, ticker in enumerate(tickers):
+            msg += f'{num + 1}. {ticker}\n'
+    else:
+        msg = VIEW_NO_SECURITIES
+
+    return msg
+
 def process_user_input():
     user_input = input(USER_OPTION_INPUT)
 
@@ -62,10 +73,12 @@ def process_user_input():
         return False
 
     elif user_input == VIEW_SECURITIES_OPTION:
-        print(VIEW_NO_SECURITIES)
+        print(get_view_securities_msg())
 
     elif user_input == ADD_SECURITIES_OPTION:
         ticker = input(ADD_SECURITY_INPUT)
+        app.add_security(ticker)
+
         print(get_security_added_msg(ticker))
 
     else:
@@ -77,7 +90,6 @@ def process_user_input():
 def main():
     if len(sys.argv) > 1:
         conn_string = sys.argv[1]
-        app = MarketData()
         try:
             app.run(conn_string)
 
@@ -93,6 +105,7 @@ def main():
         # TODO(steve): probably better to use a running global parameter
         # to make it more readable
         while process_user_input(): pass
+
     else:
         print(NO_DATABASE_SPECIFIED_MSG)
 

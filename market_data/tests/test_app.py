@@ -78,7 +78,11 @@ class AppMainMenuTests(unittest.TestCase):
         sys.argv = ['./app.py', self.database]
         app.main()
 
-        self.expected_output.append(app.VIEW_NO_SECURITIES)
+        mock_method = 'market_data.market_data.MarketData.get_securities_list'
+        with patch(mock_method, autospec=True) as mock_tickers:
+            mock_tickers.return_value = []
+            self.expected_output.append(app.get_view_securities_msg())
+
         self.expected_output.append(app.MENU_OPTIONS)
         self.expected_output.append(app.USER_OPTION_INPUT)
         self.expected_output.append(app.QUIT_MSG)
@@ -100,6 +104,34 @@ class AppMainMenuTests(unittest.TestCase):
         self.expected_output.append(app.QUIT_MSG)
 
         check_output(self.actual_output, self.expected_output)
+
+    def test_view_securities(self):
+        self.user_input.append(app.ADD_SECURITIES_OPTION)
+        self.user_input.append('AMZN')
+        self.user_input.append(app.VIEW_SECURITIES_OPTION)
+        self.user_input.append(app.QUIT_OPTION)
+
+        sys.argv = ['./app.py', self.database]
+        app.main()
+
+        self.expected_output.append(app.ADD_SECURITY_INPUT)
+        self.expected_output.append(app.get_security_added_msg('AMZN'))
+
+        self.expected_output.append(app.MENU_OPTIONS)
+        self.expected_output.append(app.USER_OPTION_INPUT)
+
+        mock_method = 'market_data.market_data.MarketData.get_securities_list'
+        with patch(mock_method, autospec=True) as mock_tickers:
+            mock_tickers.return_value = ['AMZN']
+            self.expected_output.append(app.get_view_securities_msg())
+
+        self.expected_output.append(app.MENU_OPTIONS)
+        self.expected_output.append(app.USER_OPTION_INPUT)
+        self.expected_output.append(app.QUIT_MSG)
+
+        check_output(self.actual_output, self.expected_output)
+
+
 
 class AppDatabaseTests(unittest.TestCase):
 
