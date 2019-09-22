@@ -13,6 +13,9 @@ from market_data.data_adapter import DataAdapter
 
 def check_output(actual_output, expected_output):
     for actual, expected in zip(actual_output, expected_output):
+        if actual != expected:
+            print(f'Actual: {actual}')
+            print(f'Expected: {expected}')
         assert actual == expected
     assert len(actual_output) == len(expected_output)
 
@@ -76,6 +79,22 @@ class AppMainMenuTests(unittest.TestCase):
         app.main()
 
         self.expected_output.append(app.VIEW_NO_SECURITIES)
+        self.expected_output.append(app.MENU_OPTIONS)
+        self.expected_output.append(app.USER_OPTION_INPUT)
+        self.expected_output.append(app.QUIT_MSG)
+
+        check_output(self.actual_output, self.expected_output)
+
+    def test_add_securities(self):
+        self.user_input.append(app.ADD_SECURITIES_OPTION)
+        self.user_input.append('AMZN')
+        self.user_input.append(app.QUIT_OPTION)
+
+        sys.argv = ['./app.py', self.database]
+        app.main()
+
+        self.expected_output.append(app.ADD_SECURITY_INPUT)
+        self.expected_output.append(app.get_security_added_msg('AMZN'))
         self.expected_output.append(app.MENU_OPTIONS)
         self.expected_output.append(app.USER_OPTION_INPUT)
         self.expected_output.append(app.QUIT_MSG)

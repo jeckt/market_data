@@ -35,9 +35,15 @@ QUIT_MSG = 'Thank you for using the Market Data Application. Goodbye!'
 
 VIEW_NO_SECURITIES = 'Currently no securities have been added to database.'
 
+ADD_SECURITY_INPUT = """
+Please type in the Yahoo ticker for the security you want to add:
+"""
+SECURITY_ADDED_MSG = '{0} has been added'
+
 USER_OPTION_INPUT = 'Option: '
-QUIT_OPTION = '3'
 VIEW_SECURITIES_OPTION = '1'
+ADD_SECURITIES_OPTION = '2'
+QUIT_OPTION = '3'
 
 def get_new_database_created_msg(db):
     return NEW_DATABASE_CREATED_MSG.format(db)
@@ -45,18 +51,27 @@ def get_new_database_created_msg(db):
 def get_load_existing_database_msg(db):
     return DATABASE_LOADED_MSG.format(db)
 
+def get_security_added_msg(ticker):
+    return SECURITY_ADDED_MSG.format(ticker)
+
 def process_user_input():
     user_input = input(USER_OPTION_INPUT)
+
     if user_input == QUIT_OPTION:
         print(QUIT_MSG)
         return False
+
     elif user_input == VIEW_SECURITIES_OPTION:
         print(VIEW_NO_SECURITIES)
-        print(MENU_OPTIONS)
+
+    elif user_input == ADD_SECURITIES_OPTION:
+        ticker = input(ADD_SECURITY_INPUT)
+        print(get_security_added_msg(ticker))
+
     else:
         print(INVALID_MENU_OPTION_MSG)
-        print(MENU_OPTIONS)
 
+    print(MENU_OPTIONS)
     return True
 
 def main():

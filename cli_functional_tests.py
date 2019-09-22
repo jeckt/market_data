@@ -54,22 +54,12 @@ class CommandLineInterfaceTests(unittest.TestCase):
 
         # As expected there are no securities so he proceeds to option
         # 2 to add securities
-        user_input.append('2')
-        msg = """
-        Please type in the Yahoo ticker for the security you want to add:
-        """
-        expected_output.append(msg)
+        user_input.append(app.ADD_SECURITIES_OPTION)
+        expected_output.append(app.ADD_SECURITY_INPUT)
 
         # He adds AMZN to the database
         user_input.append('AMZN')
-        msg = 'AMZN has been added'
-        expected_output.append(msg)
-        msg = 'Would you please to add another security? [y/n]: '
-        expected_output.append(msg)
-
-        # He is then asked if he would like to add another security. 
-        # Happy with just adding he selects 'n'
-        user_input.append('n')
+        expected_output.append(app.get_security_added_msg('AMZN'))
         expected_output.append(app.MENU_OPTIONS)
         expected_output.append(app.USER_OPTION_INPUT)
 
