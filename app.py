@@ -1,15 +1,9 @@
 #!/usr/bin/env python
 
 import sys
+from enum import Enum, unique
 from market_data.market_data import MarketData
 from market_data.data_adapter import DataAdapter, DatabaseNotFoundError
-
-MENU_OPTIONS = """
-Please select from the following options:
-    1. View Securities
-    2. Add a Security
-    3. Quit
-"""
 
 INVALID_MENU_OPTION_MSG = 'The option selected is invalid'
 
@@ -39,9 +33,19 @@ ADD_SECURITY_INPUT = 'Enter Yahoo ticker for the security you want to add: '
 SECURITY_ADDED_MSG = '\n{0} has been added'
 
 USER_OPTION_INPUT = 'Option: '
-VIEW_SECURITIES_OPTION = '1'
-ADD_SECURITIES_OPTION = '2'
-QUIT_OPTION = '3'
+
+@unique
+class MenuOptions(Enum):
+    VIEW_SECURITIES = 1
+    ADD_SECURITIES = 2
+    QUIT = 3
+
+MENU_OPTIONS = """
+Please select from the following options:
+    1. View Securities
+    2. Add a Security
+    3. Quit
+"""
 
 app = MarketData()
 
@@ -68,14 +72,14 @@ def get_view_securities_msg():
 def process_user_input():
     user_input = input(USER_OPTION_INPUT)
 
-    if user_input == QUIT_OPTION:
+    if user_input == MenuOptions.QUIT:
         print(QUIT_MSG)
         return False
 
-    elif user_input == VIEW_SECURITIES_OPTION:
+    elif user_input == MenuOptions.VIEW_SECURITIES:
         print(get_view_securities_msg())
 
-    elif user_input == ADD_SECURITIES_OPTION:
+    elif user_input == MenuOptions.ADD_SECURITIES:
         ticker = input(ADD_SECURITY_INPUT)
         app.add_security(ticker)
 

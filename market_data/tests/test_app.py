@@ -48,7 +48,7 @@ class AppMainMenuTests(unittest.TestCase):
             pass
 
     def test_quit_option_selected_exits_app(self):
-        self.user_input.append(app.QUIT_OPTION)
+        self.user_input.append(app.MenuOptions.QUIT)
 
         sys.argv = ['./app.py', self.database]
         app.main()
@@ -59,7 +59,7 @@ class AppMainMenuTests(unittest.TestCase):
 
     def test_invalid_menu_option_selected(self):
         self.user_input.append('-1')
-        self.user_input.append(app.QUIT_OPTION)
+        self.user_input.append(app.MenuOptions.QUIT)
 
         sys.argv = ['./app.py', self.database]
         app.main()
@@ -72,8 +72,8 @@ class AppMainMenuTests(unittest.TestCase):
         check_output(self.actual_output, self.expected_output)
 
     def test_view_securities_with_no_securities_loaded(self):
-        self.user_input.append(app.VIEW_SECURITIES_OPTION)
-        self.user_input.append(app.QUIT_OPTION)
+        self.user_input.append(app.MenuOptions.VIEW_SECURITIES)
+        self.user_input.append(app.MenuOptions.QUIT)
 
         sys.argv = ['./app.py', self.database]
         app.main()
@@ -90,9 +90,9 @@ class AppMainMenuTests(unittest.TestCase):
         check_output(self.actual_output, self.expected_output)
 
     def test_add_securities(self):
-        self.user_input.append(app.ADD_SECURITIES_OPTION)
+        self.user_input.append(app.MenuOptions.ADD_SECURITIES)
         self.user_input.append('AMZN')
-        self.user_input.append(app.QUIT_OPTION)
+        self.user_input.append(app.MenuOptions.QUIT)
 
         sys.argv = ['./app.py', self.database]
         app.main()
@@ -106,10 +106,10 @@ class AppMainMenuTests(unittest.TestCase):
         check_output(self.actual_output, self.expected_output)
 
     def test_view_securities(self):
-        self.user_input.append(app.ADD_SECURITIES_OPTION)
+        self.user_input.append(app.MenuOptions.ADD_SECURITIES)
         self.user_input.append('AMZN')
-        self.user_input.append(app.VIEW_SECURITIES_OPTION)
-        self.user_input.append(app.QUIT_OPTION)
+        self.user_input.append(app.MenuOptions.VIEW_SECURITIES)
+        self.user_input.append(app.MenuOptions.QUIT)
 
         sys.argv = ['./app.py', self.database]
         app.main()

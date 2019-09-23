@@ -50,7 +50,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
 
         # Curious to see if there are any securities in the app already
         # he selects option 1 to view the securities.
-        user_input.append(app.VIEW_SECURITIES_OPTION)
+        user_input.append(app.MenuOptions.VIEW_SECURITIES)
         mock_method = 'market_data.market_data.MarketData.get_securities_list'
         with patch(mock_method, autospec=True) as mock_tickers:
             mock_tickers.return_value = []
@@ -60,7 +60,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
 
         # As expected there are no securities so he proceeds to option
         # 2 to add securities
-        user_input.append(app.ADD_SECURITIES_OPTION)
+        user_input.append(app.MenuOptions.ADD_SECURITIES)
         expected_output.append(app.ADD_SECURITY_INPUT)
 
         # He adds AMZN to the database
@@ -70,7 +70,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
         expected_output.append(app.USER_OPTION_INPUT)
 
         # He now checks that the security has been added to the list
-        user_input.append(app.VIEW_SECURITIES_OPTION)
+        user_input.append(app.MenuOptions.VIEW_SECURITIES)
         mock_method = 'market_data.market_data.MarketData.get_securities_list'
         with patch(mock_method, autospec=True) as mock_tickers:
             mock_tickers.return_value = ['AMZN']
@@ -79,7 +79,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
         expected_output.append(app.USER_OPTION_INPUT)
 
         # Satisfied with the results he closes the application
-        user_input.append(app.QUIT_OPTION)
+        user_input.append(app.MenuOptions.QUIT)
         expected_output.append(app.QUIT_MSG)
 
         # Method
