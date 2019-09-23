@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import sys
-from enum import Enum, unique
+from enum import IntEnum, unique
 from market_data.market_data import MarketData
 from market_data.data_adapter import DataAdapter, DatabaseNotFoundError
 
@@ -35,7 +35,7 @@ SECURITY_ADDED_MSG = '\n{0} has been added'
 USER_OPTION_INPUT = 'Option: '
 
 @unique
-class MenuOptions(Enum):
+class MenuOptions(IntEnum):
     VIEW_SECURITIES = 1
     ADD_SECURITIES = 2
     QUIT = 3
@@ -70,22 +70,26 @@ def get_view_securities_msg():
     return msg
 
 def process_user_input():
-    user_input = input(USER_OPTION_INPUT)
+    try:
+        user_input = int(input(USER_OPTION_INPUT))
 
-    if user_input == MenuOptions.QUIT:
-        print(QUIT_MSG)
-        return False
+        if user_input == MenuOptions.QUIT:
+            print(QUIT_MSG)
+            return False
 
-    elif user_input == MenuOptions.VIEW_SECURITIES:
-        print(get_view_securities_msg())
+        elif user_input == MenuOptions.VIEW_SECURITIES:
+            print(get_view_securities_msg())
 
-    elif user_input == MenuOptions.ADD_SECURITIES:
-        ticker = input(ADD_SECURITY_INPUT)
-        app.add_security(ticker)
+        elif user_input == MenuOptions.ADD_SECURITIES:
+            ticker = input(ADD_SECURITY_INPUT)
+            app.add_security(ticker)
 
-        print(get_security_added_msg(ticker))
+            print(get_security_added_msg(ticker))
 
-    else:
+        else:
+            print(INVALID_MENU_OPTION_MSG)
+
+    except ValueError:
         print(INVALID_MENU_OPTION_MSG)
 
     print(MENU_OPTIONS)
