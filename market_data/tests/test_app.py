@@ -38,7 +38,7 @@ class AppMainMenuTests(unittest.TestCase):
 
         msg = app.get_new_database_created_msg(self.database)
         self.expected_output.append(msg)
-        self.expected_output.append(app.MENU_OPTIONS)
+        self.expected_output.append(app.Messages.main_menu())
         self.expected_output.append(app.USER_OPTION_INPUT)
 
     def tearDown(self):
@@ -65,7 +65,7 @@ class AppMainMenuTests(unittest.TestCase):
         app.main()
 
         self.expected_output.append(app.INVALID_MENU_OPTION_MSG)
-        self.expected_output.append(app.MENU_OPTIONS)
+        self.expected_output.append(app.Messages.main_menu())
         self.expected_output.append(app.USER_OPTION_INPUT)
         self.expected_output.append(app.QUIT_MSG)
 
@@ -83,7 +83,7 @@ class AppMainMenuTests(unittest.TestCase):
             mock_tickers.return_value = []
             self.expected_output.append(app.get_view_securities_msg())
 
-        self.expected_output.append(app.MENU_OPTIONS)
+        self.expected_output.append(app.Messages.main_menu())
         self.expected_output.append(app.USER_OPTION_INPUT)
         self.expected_output.append(app.QUIT_MSG)
 
@@ -99,7 +99,7 @@ class AppMainMenuTests(unittest.TestCase):
 
         self.expected_output.append(app.ADD_SECURITY_INPUT)
         self.expected_output.append(app.get_security_added_msg('AMZN'))
-        self.expected_output.append(app.MENU_OPTIONS)
+        self.expected_output.append(app.Messages.main_menu())
         self.expected_output.append(app.USER_OPTION_INPUT)
         self.expected_output.append(app.QUIT_MSG)
 
@@ -117,7 +117,7 @@ class AppMainMenuTests(unittest.TestCase):
         self.expected_output.append(app.ADD_SECURITY_INPUT)
         self.expected_output.append(app.get_security_added_msg('AMZN'))
 
-        self.expected_output.append(app.MENU_OPTIONS)
+        self.expected_output.append(app.Messages.main_menu())
         self.expected_output.append(app.USER_OPTION_INPUT)
 
         mock_method = 'market_data.market_data.MarketData.get_securities_list'
@@ -125,7 +125,7 @@ class AppMainMenuTests(unittest.TestCase):
             mock_tickers.return_value = ['AMZN']
             self.expected_output.append(app.get_view_securities_msg())
 
-        self.expected_output.append(app.MENU_OPTIONS)
+        self.expected_output.append(app.Messages.main_menu())
         self.expected_output.append(app.USER_OPTION_INPUT)
         self.expected_output.append(app.QUIT_MSG)
 
@@ -160,7 +160,7 @@ class AppDatabaseTests(unittest.TestCase):
 
         msg = app.get_new_database_created_msg(self.database)
         self.expected_output.append(msg)
-        self.expected_output.append(app.MENU_OPTIONS)
+        self.expected_output.append(app.Messages.main_menu())
 
         check_output(self.actual_output, self.expected_output)
         self.assertTrue(os.path.isfile(self.database))
@@ -177,7 +177,7 @@ class AppDatabaseTests(unittest.TestCase):
 
         msg = app.get_load_existing_database_msg(self.database)
         self.expected_output.append(msg)
-        self.expected_output.append(app.MENU_OPTIONS)
+        self.expected_output.append(app.Messages.main_menu())
 
         check_output(self.actual_output, self.expected_output)
 

@@ -45,7 +45,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
         # Upon providing the database connection string he is able 
         # to move on to the next screen in the app.
         expected_output.append(app.get_new_database_created_msg(self.database))
-        expected_output.append(app.MENU_OPTIONS)
+        expected_output.append(app.Messages.main_menu())
         expected_output.append(app.USER_OPTION_INPUT)
 
         # Curious to see if there are any securities in the app already
@@ -55,7 +55,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
         with patch(mock_method, autospec=True) as mock_tickers:
             mock_tickers.return_value = []
             expected_output.append(app.get_view_securities_msg())
-        expected_output.append(app.MENU_OPTIONS)
+        expected_output.append(app.Messages.main_menu())
         expected_output.append(app.USER_OPTION_INPUT)
 
         # As expected there are no securities so he proceeds to option
@@ -66,7 +66,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
         # He adds AMZN to the database
         user_input.append('AMZN')
         expected_output.append(app.get_security_added_msg('AMZN'))
-        expected_output.append(app.MENU_OPTIONS)
+        expected_output.append(app.Messages.main_menu())
         expected_output.append(app.USER_OPTION_INPUT)
 
         # He now checks that the security has been added to the list
@@ -75,7 +75,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
         with patch(mock_method, autospec=True) as mock_tickers:
             mock_tickers.return_value = ['AMZN']
             expected_output.append(app.get_view_securities_msg())
-        expected_output.append(app.MENU_OPTIONS)
+        expected_output.append(app.Messages.main_menu())
         expected_output.append(app.USER_OPTION_INPUT)
 
         # Satisfied with the results he closes the application

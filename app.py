@@ -40,12 +40,15 @@ class MenuOptions(IntEnum):
     ADD_SECURITIES = 2
     QUIT = 3
 
-MENU_OPTIONS = """
-Please select from the following options:
-    1. View Securities
-    2. Add a Security
-    3. Quit
-"""
+class Messages:
+
+    @staticmethod
+    def main_menu():
+        msg = 'Please select from the following options:\n\n'
+        msg += f'\t{MenuOptions.VIEW_SECURITIES.value}. View Securities\n'
+        msg += f'\t{MenuOptions.ADD_SECURITIES.value}. Add Securities\n'
+        msg += f'\t{MenuOptions.QUIT.value}. Quit\n'
+        return msg
 
 app = MarketData()
 
@@ -92,7 +95,7 @@ def process_user_input():
     except ValueError:
         print(INVALID_MENU_OPTION_MSG)
 
-    print(MENU_OPTIONS)
+    print(Messages.main_menu())
     return True
 
 def main():
@@ -102,13 +105,13 @@ def main():
             app.run(conn_string)
 
             print(get_load_existing_database_msg(conn_string))
-            print(MENU_OPTIONS)
+            print(Messages.main_menu())
         except DatabaseNotFoundError:
             DataAdapter.create_database(conn_string)
             app.run(conn_string)
 
             print(get_new_database_created_msg(conn_string))
-            print(MENU_OPTIONS)
+            print(Messages.main_menu())
 
         # TODO(steve): probably better to use a running global parameter
         # to make it more readable
