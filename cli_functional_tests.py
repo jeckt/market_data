@@ -21,7 +21,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
         # Alex has heard about this new command line app that can
         # store financial market data for him. He decides to open it
         # NOTE(steve): simulates ./app.py call on command line
-        expected_output.append(app.NO_DATABASE_SPECIFIED_MSG)
+        expected_output.append(app.Messages.no_database_specified())
         def mock_input(s):
             actual_output.append(s)
             return user_input.pop(0)
@@ -44,9 +44,9 @@ class CommandLineInterfaceTests(unittest.TestCase):
 
         # Upon providing the database connection string he is able 
         # to move on to the next screen in the app.
-        expected_output.append(app.get_new_database_created_msg(self.database))
+        expected_output.append(app.Messages.new_database_created(self.database))
         expected_output.append(app.Messages.main_menu())
-        expected_output.append(app.USER_OPTION_INPUT)
+        expected_output.append(app.Messages.option_input())
 
         # Curious to see if there are any securities in the app already
         # he selects option 1 to view the securities.
@@ -54,33 +54,33 @@ class CommandLineInterfaceTests(unittest.TestCase):
         mock_method = 'market_data.market_data.MarketData.get_securities_list'
         with patch(mock_method, autospec=True) as mock_tickers:
             mock_tickers.return_value = []
-            expected_output.append(app.get_view_securities_msg())
+            expected_output.append(app.Messages.view_securities())
         expected_output.append(app.Messages.main_menu())
-        expected_output.append(app.USER_OPTION_INPUT)
+        expected_output.append(app.Messages.option_input())
 
         # As expected there are no securities so he proceeds to option
         # 2 to add securities
         user_input.append(app.MenuOptions.ADD_SECURITIES)
-        expected_output.append(app.ADD_SECURITY_INPUT)
+        expected_output.append(app.Messages.add_security_input())
 
         # He adds AMZN to the database
         user_input.append('AMZN')
-        expected_output.append(app.get_security_added_msg('AMZN'))
+        expected_output.append(app.Messages.security_added('AMZN'))
         expected_output.append(app.Messages.main_menu())
-        expected_output.append(app.USER_OPTION_INPUT)
+        expected_output.append(app.Messages.option_input())
 
         # He now checks that the security has been added to the list
         user_input.append(app.MenuOptions.VIEW_SECURITIES)
         mock_method = 'market_data.market_data.MarketData.get_securities_list'
         with patch(mock_method, autospec=True) as mock_tickers:
             mock_tickers.return_value = ['AMZN']
-            expected_output.append(app.get_view_securities_msg())
+            expected_output.append(app.Messages.view_securities())
         expected_output.append(app.Messages.main_menu())
-        expected_output.append(app.USER_OPTION_INPUT)
+        expected_output.append(app.Messages.option_input())
 
         # Satisfied with the results he closes the application
         user_input.append(app.MenuOptions.QUIT)
-        expected_output.append(app.QUIT_MSG)
+        expected_output.append(app.Messages.quit())
 
         # Method
         app.main()

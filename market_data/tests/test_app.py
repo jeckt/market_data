@@ -36,10 +36,10 @@ class AppMainMenuTests(unittest.TestCase):
         app.input = mock_input
         app.print = lambda s: self.actual_output.append(s)
 
-        msg = app.get_new_database_created_msg(self.database)
+        msg = app.Messages.new_database_created(self.database)
         self.expected_output.append(msg)
         self.expected_output.append(app.Messages.main_menu())
-        self.expected_output.append(app.USER_OPTION_INPUT)
+        self.expected_output.append(app.Messages.option_input())
 
     def tearDown(self):
         try:
@@ -53,7 +53,7 @@ class AppMainMenuTests(unittest.TestCase):
         sys.argv = ['./app.py', self.database]
         app.main()
 
-        self.expected_output.append(app.QUIT_MSG)
+        self.expected_output.append(app.Messages.quit())
 
         check_output(self.actual_output, self.expected_output)
 
@@ -64,10 +64,10 @@ class AppMainMenuTests(unittest.TestCase):
         sys.argv = ['./app.py', self.database]
         app.main()
 
-        self.expected_output.append(app.INVALID_MENU_OPTION_MSG)
+        self.expected_output.append(app.Messages.invalid_option())
         self.expected_output.append(app.Messages.main_menu())
-        self.expected_output.append(app.USER_OPTION_INPUT)
-        self.expected_output.append(app.QUIT_MSG)
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.quit())
 
         check_output(self.actual_output, self.expected_output)
 
@@ -81,11 +81,11 @@ class AppMainMenuTests(unittest.TestCase):
         mock_method = 'market_data.market_data.MarketData.get_securities_list'
         with patch(mock_method, autospec=True) as mock_tickers:
             mock_tickers.return_value = []
-            self.expected_output.append(app.get_view_securities_msg())
+            self.expected_output.append(app.Messages.view_securities())
 
         self.expected_output.append(app.Messages.main_menu())
-        self.expected_output.append(app.USER_OPTION_INPUT)
-        self.expected_output.append(app.QUIT_MSG)
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.quit())
 
         check_output(self.actual_output, self.expected_output)
 
@@ -97,11 +97,11 @@ class AppMainMenuTests(unittest.TestCase):
         sys.argv = ['./app.py', self.database]
         app.main()
 
-        self.expected_output.append(app.ADD_SECURITY_INPUT)
-        self.expected_output.append(app.get_security_added_msg('AMZN'))
+        self.expected_output.append(app.Messages.add_security_input())
+        self.expected_output.append(app.Messages.security_added('AMZN'))
         self.expected_output.append(app.Messages.main_menu())
-        self.expected_output.append(app.USER_OPTION_INPUT)
-        self.expected_output.append(app.QUIT_MSG)
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.quit())
 
         check_output(self.actual_output, self.expected_output)
 
@@ -114,24 +114,22 @@ class AppMainMenuTests(unittest.TestCase):
         sys.argv = ['./app.py', self.database]
         app.main()
 
-        self.expected_output.append(app.ADD_SECURITY_INPUT)
-        self.expected_output.append(app.get_security_added_msg('AMZN'))
+        self.expected_output.append(app.Messages.add_security_input())
+        self.expected_output.append(app.Messages.security_added('AMZN'))
 
         self.expected_output.append(app.Messages.main_menu())
-        self.expected_output.append(app.USER_OPTION_INPUT)
+        self.expected_output.append(app.Messages.option_input())
 
         mock_method = 'market_data.market_data.MarketData.get_securities_list'
         with patch(mock_method, autospec=True) as mock_tickers:
             mock_tickers.return_value = ['AMZN']
-            self.expected_output.append(app.get_view_securities_msg())
+            self.expected_output.append(app.Messages.view_securities())
 
         self.expected_output.append(app.Messages.main_menu())
-        self.expected_output.append(app.USER_OPTION_INPUT)
-        self.expected_output.append(app.QUIT_MSG)
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.quit())
 
         check_output(self.actual_output, self.expected_output)
-
-
 
 class AppDatabaseTests(unittest.TestCase):
 
@@ -149,7 +147,7 @@ class AppDatabaseTests(unittest.TestCase):
         sys.argv = ['./app.py']
         app.main()
 
-        self.expected_output.append(app.NO_DATABASE_SPECIFIED_MSG)
+        self.expected_output.append(app.Messages.no_database_specified())
         check_output(self.actual_output, self.expected_output)
 
     def test_app_creates_database_on_database_not_found(self):
@@ -158,7 +156,7 @@ class AppDatabaseTests(unittest.TestCase):
             sys.argv = ['./app.py', self.database]
             app.main()
 
-        msg = app.get_new_database_created_msg(self.database)
+        msg = app.Messages.new_database_created(self.database)
         self.expected_output.append(msg)
         self.expected_output.append(app.Messages.main_menu())
 
@@ -175,7 +173,7 @@ class AppDatabaseTests(unittest.TestCase):
             sys.argv = ['./app.py', self.database]
             app.main()
 
-        msg = app.get_load_existing_database_msg(self.database)
+        msg = app.Messages.load_existing_database(self.database)
         self.expected_output.append(msg)
         self.expected_output.append(app.Messages.main_menu())
 

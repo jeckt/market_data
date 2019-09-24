@@ -5,40 +5,63 @@ from enum import IntEnum, unique
 from market_data.market_data import MarketData
 from market_data.data_adapter import DataAdapter, DatabaseNotFoundError
 
-INVALID_MENU_OPTION_MSG = 'The option selected is invalid'
-
-NO_DATABASE_SPECIFIED_MSG = """
-Market Data is command line application that provides
-collection, storage and retrieval of financial market data.
-
-To use the application either use the following commands:
-    $ ./market_data/app.py $DATABASE_CONNECTION
-or
-    $ python market_data/app.py $DATABASE_CONNECTION
-
-where $DATABASE_CONNECTION is the location of the json
-database connection file. If the file does not exist
-the application will create it.
-"""
-
-NEW_DATABASE_CREATED_MSG = 'Welcome! A new database has been created: {0}'
-
-DATABASE_LOADED_MSG = 'Welcome! Database {0} has been loaded'
-
-QUIT_MSG = '\nThank you for using the Market Data Application. Goodbye!'
-
-VIEW_NO_SECURITIES = '\nCurrently no securities have been added to database.'
-
-ADD_SECURITY_INPUT = 'Enter Yahoo ticker for the security you want to add: '
-SECURITY_ADDED_MSG = '\n{0} has been added'
-
-USER_OPTION_INPUT = 'Option: '
+app = MarketData()
 
 @unique
 class MenuOptions(IntEnum):
     VIEW_SECURITIES = 1
     ADD_SECURITIES = 2
     QUIT = 3
+
+def main():
+    if len(sys.argv) > 1:
+        conn_string = sys.argv[1]
+        try:
+            app.run(conn_string)
+
+            print(Messages.load_existing_database(conn_string))
+            print(Messages.main_menu())
+
+        except DatabaseNotFoundError:
+            DataAdapter.create_database(conn_string)
+            app.run(conn_string)
+
+            print(Messages.new_database_created(conn_string))
+            print(Messages.main_menu())
+
+        # TODO(steve): probably better to use a running global parameter
+        # to make it more readable
+        while process_user_input(): pass
+
+    else:
+        print(Messages.no_database_specified())
+
+def process_user_input():
+    try:
+        user_input = int(input(Messages.option_input()))
+
+        if user_input == MenuOptions.QUIT:
+            print(Messages.quit())
+            return False
+
+        elif user_input == MenuOptions.VIEW_SECURITIES:
+            print(Messages.view_securities())
+
+        elif user_input == MenuOptions.ADD_SECURITIES:
+            ticker = input(Messages.add_security_input())
+
+            app.add_security(ticker)
+
+            print(Messages.security_added(ticker))
+
+        else:
+            print(Messages.invalid_option())
+
+    except ValueError:
+        print(Messages.invalid_option())
+
+    print(Messages.main_menu())
+    return True
 
 class Messages:
 
@@ -47,78 +70,67 @@ class Messages:
         msg = 'Please select from the following options:\n\n'
         msg += f'\t{MenuOptions.VIEW_SECURITIES.value}. View Securities\n'
         msg += f'\t{MenuOptions.ADD_SECURITIES.value}. Add Securities\n'
-        msg += f'\t{MenuOptions.QUIT.value}. Quit\n'
+        msg += f'\t{MenuOptions.QUIT.value}. Quit\n\n'
         return msg
 
-app = MarketData()
+    @staticmethod
+    def invalid_option():
+        return 'The option selected is invalid'
 
-def get_new_database_created_msg(db):
-    return NEW_DATABASE_CREATED_MSG.format(db)
+    @staticmethod
+    def option_input():
+        return 'Option: '
 
-def get_load_existing_database_msg(db):
-    return DATABASE_LOADED_MSG.format(db)
-
-def get_security_added_msg(ticker):
-    return SECURITY_ADDED_MSG.format(ticker)
-
-def get_view_securities_msg():
-    tickers = app.get_securities_list()
-    if len(tickers) > 0:
-        msg = '\nThe following securities are in the database:\n\n'
-        for num, ticker in enumerate(tickers):
-            msg += f'{num + 1}. {ticker}\n'
-    else:
-        msg = VIEW_NO_SECURITIES
-
-    return msg
-
-def process_user_input():
-    try:
-        user_input = int(input(USER_OPTION_INPUT))
-
-        if user_input == MenuOptions.QUIT:
-            print(QUIT_MSG)
-            return False
-
-        elif user_input == MenuOptions.VIEW_SECURITIES:
-            print(get_view_securities_msg())
-
-        elif user_input == MenuOptions.ADD_SECURITIES:
-            ticker = input(ADD_SECURITY_INPUT)
-            app.add_security(ticker)
-
-            print(get_security_added_msg(ticker))
-
+    @staticmethod
+    def view_securities():
+        tickers = app.get_securities_list()
+        if len(tickers) > 0:
+            msg = '\nThe following securities are in the database:\n\n'
+            for num, ticker in enumerate(tickers):
+                msg += f'{num + 1}. {ticker}\n'
         else:
-            print(INVALID_MENU_OPTION_MSG)
+            msg = '\nCurrently no securities have been added to database.'
 
-    except ValueError:
-        print(INVALID_MENU_OPTION_MSG)
+        return msg
 
-    print(Messages.main_menu())
-    return True
+    @staticmethod
+    def add_security_input():
+        return 'Enter Yahoo ticker for the security you want to add: '
 
-def main():
-    if len(sys.argv) > 1:
-        conn_string = sys.argv[1]
-        try:
-            app.run(conn_string)
+    @staticmethod
+    def security_added(ticker):
+        msg = '\n{ticker} has been added'
+        return msg
 
-            print(get_load_existing_database_msg(conn_string))
-            print(Messages.main_menu())
-        except DatabaseNotFoundError:
-            DataAdapter.create_database(conn_string)
-            app.run(conn_string)
+    @staticmethod
+    def quit():
+        return '\nThank you for using the Market Data Application. Goodbye!'
 
-            print(get_new_database_created_msg(conn_string))
-            print(Messages.main_menu())
+    @staticmethod
+    def no_database_specified():
+        return """
+        Market Data is command line application that provides
+        collection, storage and retrieval of financial market data.
 
-        # TODO(steve): probably better to use a running global parameter
-        # to make it more readable
-        while process_user_input(): pass
+        To use the application either use the following commands:
+            $ ./market_data/app.py $DATABASE_CONNECTION
+        or
+            $ python market_data/app.py $DATABASE_CONNECTION
 
-    else:
-        print(NO_DATABASE_SPECIFIED_MSG)
+        where $DATABASE_CONNECTION is the location of the json
+        database connection file. If the file does not exist
+        the application will create it.
+        """
+
+    @staticmethod
+    def new_database_created(db):
+        msg = f'Welcome! A new database has been created: {db}\n\n'
+        return msg
+
+    @staticmethod
+    def load_existing_database(db):
+        msg = f'Welcome! Database {db} has been loaded\n\n'
+        return msg
 
 if __name__ == '__main__':
     main()
