@@ -14,7 +14,89 @@ class CommandLineInterfaceTests(unittest.TestCase):
         self.database = DataAdapter.test_database
 
     def tearDown(self):
-        DataAdapter.delete_test_database()
+        try:
+            DataAdapter.delete_test_database()
+        except:
+            pass
+
+    def test_update_and_view_updated_security(self):
+        expected_output, actual_output = [], []
+        # Mary on hearing from Alex about this new command line
+        # app decides to try it.
+        sys.argv = ['./app.py', self.database]
+        expected_output, actual_output = [], []
+        user_input = []
+
+        # Upon opening the app she is presented with a bunch of options
+        expected_output.append(app.Messages.new_database_created(self.database))
+        expected_output.append(app.Messages.main_menu())
+        expected_output.append(app.Messages.option_input())
+
+        # She selects to add a security and adds 'AMZN'
+        # The app then returns her to the main menu.
+        user_input.append(app.MenuOptions.ADD_SECURITIES)
+        expected_output.append(app.Messages.add_security_input())
+        user_input.append('AMZN')
+        expected_output.append(app.Messages.security_added('AMZN'))
+        expected_output.append(app.Messages.main_menu())
+        expected_output.append(app.Messages.option_input())
+
+        # Since the US equities market is closed she decides
+        # to update the market data whcih will update the 
+        # security she just added
+        # TODO(steve) we need to mock the update market data call so
+        # that it returns the exact market data we expect.
+        user_input.append(app.MenuOptions.UPDATE_MARKET_DATA)
+        expected_output.append('All market data has been updated...')
+        expected_output.append(app.Messages.main_menu())
+        expected_output.append(app.Messages.option_input())
+
+        # She then proceeds to view the updated market data
+        user_input.append(app.MenuOptions.VIEW_SECURITIES)
+        mock_method = 'market_data.market_data.MarketData.get_securities_list'
+        with patch(mock_method, autospec=True) as mock_tickers:
+            mock_tickers.return_value = ['AMZN']
+            expected_output.append(app.Messages.view_securities())
+        expected_output.append(app.Messages.option_input)
+
+        # She then chooses to see the updated market data in AMZN
+        user_input.append('1')
+        msg = """
+        AMZN
+        ====
+
+        Date        | Open    | High    | Low     | Close
+        =====================================================
+        10-May-2019   1,898.00  1,903.79  1,856.00  1,889.98
+
+        """
+        expected_output.append(msg)
+        msg = 'Press any key to return to view securities page...'
+        expected_output.append(msg)
+
+        # Happy with the results she returns the view securities page
+        user_input.append('')
+        mock_method = 'market_data.market_data.MarketData.get_securities_list'
+        with patch(mock_method, autospec=True) as mock_tickers:
+            mock_tickers.return_value = ['AMZN']
+            expected_output.append(app.Messages.view_securities())
+        expected_output.append(app.Messages.option_input)
+
+        # This time she selects to go back to the main menu
+        # and quits the application
+        user_input.append('0')
+        expected_output.append(app.Messages.main_menu())
+        expected_output.append(app.Messages.option_input())
+        user_input.append(app.MenuOptions.QUIT)
+        expected_output.append(app.Messages.quit())
+
+        # Method
+        app.main()
+
+        # Tests
+        for actual, expected in zip(actual_output, expected_output):
+            self.assertEqual(actual, expected)
+        self.assertEqual(len(actual_output), len(expected_output))
 
     def test_add_securities_and_view_securities(self):
         expected_output, actual_output = [], []
