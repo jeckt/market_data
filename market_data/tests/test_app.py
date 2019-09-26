@@ -73,6 +73,7 @@ class AppMainMenuTests(unittest.TestCase):
 
     def test_view_securities_with_no_securities_loaded(self):
         self.user_input.append(app.MenuOptions.VIEW_SECURITIES)
+        self.user_input.append('0') # Return to Main Menu
         self.user_input.append(app.MenuOptions.QUIT)
 
         sys.argv = ['./app.py', self.database]
@@ -83,6 +84,7 @@ class AppMainMenuTests(unittest.TestCase):
             mock_tickers.return_value = []
             self.expected_output.append(app.Messages.view_securities())
 
+        self.expected_output.append(app.Messages.option_input())
         self.expected_output.append(app.Messages.main_menu())
         self.expected_output.append(app.Messages.option_input())
         self.expected_output.append(app.Messages.quit())
@@ -109,6 +111,7 @@ class AppMainMenuTests(unittest.TestCase):
         self.user_input.append(app.MenuOptions.ADD_SECURITIES)
         self.user_input.append('AMZN')
         self.user_input.append(app.MenuOptions.VIEW_SECURITIES)
+        self.user_input.append('0') # Return to Main Menu
         self.user_input.append(app.MenuOptions.QUIT)
 
         sys.argv = ['./app.py', self.database]
@@ -125,6 +128,7 @@ class AppMainMenuTests(unittest.TestCase):
             mock_tickers.return_value = ['AMZN']
             self.expected_output.append(app.Messages.view_securities())
 
+        self.expected_output.append(app.Messages.option_input())
         self.expected_output.append(app.Messages.main_menu())
         self.expected_output.append(app.Messages.option_input())
         self.expected_output.append(app.Messages.quit())
