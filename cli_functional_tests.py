@@ -137,11 +137,12 @@ class CommandLineInterfaceTests(unittest.TestCase):
         with patch(mock_method, autospec=True) as mock_tickers:
             mock_tickers.return_value = []
             expected_output.append(app.Messages.view_securities())
-        expected_output.append(app.Messages.main_menu())
         expected_output.append(app.Messages.option_input())
 
-        # As expected there are no securities so he proceeds to option
-        # 2 to add securities
+        # As expected there are no securities so he returns to the main menu
+        # and proceeds to optio# 2 to add securities
+        user_input.append('0')
+        expected_output.append(app.Messages.main_menu())
         user_input.append(app.MenuOptions.ADD_SECURITIES)
         expected_output.append(app.Messages.add_security_input())
 
@@ -157,10 +158,13 @@ class CommandLineInterfaceTests(unittest.TestCase):
         with patch(mock_method, autospec=True) as mock_tickers:
             mock_tickers.return_value = ['AMZN']
             expected_output.append(app.Messages.view_securities())
-        expected_output.append(app.Messages.main_menu())
         expected_output.append(app.Messages.option_input())
 
-        # Satisfied with the results he closes the application
+        # Satisfied with the results he returns to the main menu
+        # and closes the application
+        user_input.append('0')
+        expected_output.append(app.Messages.main_menu())
+        expected_output.append(app.Messages.option_input())
         user_input.append(app.MenuOptions.QUIT)
         expected_output.append(app.Messages.quit())
 
