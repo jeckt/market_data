@@ -53,6 +53,8 @@ def process_user_input():
 
                     if view_input == 0:
                         return_to_main_menu = True
+                    else:
+                        print(Messages.invalid_option())
 
                 except ValueError:
                     print(Messages.invalid_option())

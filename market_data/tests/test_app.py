@@ -161,6 +161,33 @@ class AppMainMenuTests(unittest.TestCase):
 
         check_output(self.actual_output, self.expected_output)
 
+    @patch('market_data.market_data.MarketData.get_securities_list',
+           autospec=True)
+    def test_view_securities_invalid_integer_option(self, mock_tickers):
+        self.user_input.append(app.MenuOptions.VIEW_SECURITIES)
+        self.user_input.append('2')
+        self.user_input.append('0') # Return to Main Menu
+        self.user_input.append(app.MenuOptions.QUIT)
+
+        sys.argv = ['./app.py', self.database]
+        app.main()
+
+        mock_tickers.return_value = []
+
+        self.expected_output.append(app.Messages.view_securities())
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.invalid_option())
+
+        self.expected_output.append(app.Messages.view_securities())
+        self.expected_output.append(app.Messages.option_input())
+
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.quit())
+
+        check_output(self.actual_output, self.expected_output)
+
+
 class AppDatabaseTests(unittest.TestCase):
 
     def setUp(self):
