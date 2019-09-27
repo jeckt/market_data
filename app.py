@@ -96,10 +96,12 @@ class Messages:
         tickers = app.get_securities_list()
         if len(tickers) > 0:
             msg = '\nThe following securities are in the database:\n\n'
+            msg += '0. Return to Main Menu\n'
             for num, ticker in enumerate(tickers):
                 msg += f'{num + 1}. {ticker}\n'
         else:
-            msg = '\nCurrently no securities have been added to database.'
+            msg = '\nCurrently no securities have been added to database.\n\n'
+            msg += '0. Return to Main Menu\n'
 
         return msg
 
@@ -109,7 +111,7 @@ class Messages:
 
     @staticmethod
     def security_added(ticker):
-        msg = '\n{ticker} has been added'
+        msg = f'\n{ticker} has been added'
         return msg
 
     @staticmethod
