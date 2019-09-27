@@ -45,7 +45,17 @@ def process_user_input():
             return False
 
         elif user_input == MenuOptions.VIEW_SECURITIES:
-            print(Messages.view_securities())
+            return_to_main_menu = False
+            while not return_to_main_menu:
+                print(Messages.view_securities())
+                try:
+                    view_input = int(input(Messages.option_input()))
+
+                    if view_input == 0:
+                        return_to_main_menu = True
+
+                except ValueError:
+                    print(Messages.invalid_option())
 
         elif user_input == MenuOptions.ADD_SECURITIES:
             ticker = input(Messages.add_security_input())

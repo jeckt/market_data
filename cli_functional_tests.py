@@ -143,6 +143,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
         # and proceeds to optio# 2 to add securities
         user_input.append('0')
         expected_output.append(app.Messages.main_menu())
+        expected_output.append(app.Messages.option_input())
         user_input.append(app.MenuOptions.ADD_SECURITIES)
         expected_output.append(app.Messages.add_security_input())
 
