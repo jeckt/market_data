@@ -47,7 +47,8 @@ def process_user_input():
         elif user_input == MenuOptions.VIEW_SECURITIES:
             return_to_main_menu = False
             while not return_to_main_menu:
-                print(Messages.view_securities())
+                tickers = app.get_securities_list()
+                print(Messages.view_securities(tickers))
                 try:
                     view_input = int(input(Messages.option_input()))
 
@@ -94,8 +95,7 @@ class Messages:
         return 'Option: '
 
     @staticmethod
-    def view_securities():
-        tickers = app.get_securities_list()
+    def view_securities(tickers):
         if len(tickers) > 0:
             msg = '\nThe following securities are in the database:\n\n'
             msg += '0. Return to Main Menu\n'

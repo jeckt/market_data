@@ -103,10 +103,7 @@ class AppMainMenuTests(unittest.TestCase):
         self.expected_output.append(app.Messages.main_menu())
         self.expected_output.append(app.Messages.option_input())
 
-        mock_method = 'market_data.market_data.MarketData.get_securities_list'
-        with patch(mock_method, autospec=True) as mock_tickers:
-            mock_tickers.return_value = ['AMZN']
-            self.expected_output.append(app.Messages.view_securities())
+        self.expected_output.append(app.Messages.view_securities(['AMZN']))
 
         self.expected_output.append(app.Messages.option_input())
         self.expected_output.append(app.Messages.main_menu())
@@ -142,7 +139,35 @@ class AppViewSecuritiesTests(unittest.TestCase):
         except:
             pass
 
-    def test_view_securities_with_no_securities_loaded(self):
+    def test_no_security_data(self):
+        self.user_input.append(app.MenuOptions.ADD_SECURITIES)
+        self.user_input.append('AMZN')
+        self.user_input.append(app.MenuOptions.VIEW_SECURITIES)
+        self.user_input.append('1') # View AMZN security data
+        self.user_input.append('0') # Return to Main Menu
+        self.user_input.append(app.MenuOptions.QUIT)
+
+        sys.argv = ['./app.py', self.database]
+        app.main()
+
+        self.expected_output.append(app.Messages.add_security_input())
+        self.expected_output.append(app.Messages.security_added('AMZN'))
+
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+
+        self.expected_output.append(app.Messages.view_securities(['AMZN']))
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.view_securities(['AMZN']))
+        self.expected_output.append(app.Messages.option_input())
+
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.quit())
+
+        check_output(self.actual_output, self.expected_output)
+
+    def test_no_securities_loaded(self):
         self.user_input.append(app.MenuOptions.VIEW_SECURITIES)
         self.user_input.append('0') # Return to Main Menu
         self.user_input.append(app.MenuOptions.QUIT)
@@ -150,10 +175,7 @@ class AppViewSecuritiesTests(unittest.TestCase):
         sys.argv = ['./app.py', self.database]
         app.main()
 
-        mock_method = 'market_data.market_data.MarketData.get_securities_list'
-        with patch(mock_method, autospec=True) as mock_tickers:
-            mock_tickers.return_value = []
-            self.expected_output.append(app.Messages.view_securities())
+        self.expected_output.append(app.Messages.view_securities([]))
 
         self.expected_output.append(app.Messages.option_input())
         self.expected_output.append(app.Messages.main_menu())
@@ -162,9 +184,7 @@ class AppViewSecuritiesTests(unittest.TestCase):
 
         check_output(self.actual_output, self.expected_output)
 
-    @patch('market_data.market_data.MarketData.get_securities_list',
-           autospec=True)
-    def test_view_securities_invalid_option(self, mock_tickers):
+    def test_invalid_option(self):
         self.user_input.append(app.MenuOptions.VIEW_SECURITIES)
         self.user_input.append('invalid option')
         self.user_input.append('0') # Return to Main Menu
@@ -173,13 +193,11 @@ class AppViewSecuritiesTests(unittest.TestCase):
         sys.argv = ['./app.py', self.database]
         app.main()
 
-        mock_tickers.return_value = []
-
-        self.expected_output.append(app.Messages.view_securities())
+        self.expected_output.append(app.Messages.view_securities([]))
         self.expected_output.append(app.Messages.option_input())
         self.expected_output.append(app.Messages.invalid_option())
 
-        self.expected_output.append(app.Messages.view_securities())
+        self.expected_output.append(app.Messages.view_securities([]))
         self.expected_output.append(app.Messages.option_input())
 
         self.expected_output.append(app.Messages.main_menu())
@@ -188,9 +206,7 @@ class AppViewSecuritiesTests(unittest.TestCase):
 
         check_output(self.actual_output, self.expected_output)
 
-    @patch('market_data.market_data.MarketData.get_securities_list',
-           autospec=True)
-    def test_view_securities_invalid_integer_option(self, mock_tickers):
+    def test_invalid_integer_option(self):
         self.user_input.append(app.MenuOptions.VIEW_SECURITIES)
         self.user_input.append('2')
         self.user_input.append('0') # Return to Main Menu
@@ -199,13 +215,11 @@ class AppViewSecuritiesTests(unittest.TestCase):
         sys.argv = ['./app.py', self.database]
         app.main()
 
-        mock_tickers.return_value = []
-
-        self.expected_output.append(app.Messages.view_securities())
+        self.expected_output.append(app.Messages.view_securities([]))
         self.expected_output.append(app.Messages.option_input())
         self.expected_output.append(app.Messages.invalid_option())
 
-        self.expected_output.append(app.Messages.view_securities())
+        self.expected_output.append(app.Messages.view_securities([]))
         self.expected_output.append(app.Messages.option_input())
 
         self.expected_output.append(app.Messages.main_menu())
@@ -213,8 +227,6 @@ class AppViewSecuritiesTests(unittest.TestCase):
         self.expected_output.append(app.Messages.quit())
 
         check_output(self.actual_output, self.expected_output)
-
-
 
 class AppDatabaseTests(unittest.TestCase):
 

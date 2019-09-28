@@ -53,10 +53,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
 
         # She then proceeds to view the updated market data
         user_input.append(app.MenuOptions.VIEW_SECURITIES)
-        mock_method = 'market_data.market_data.MarketData.get_securities_list'
-        with patch(mock_method, autospec=True) as mock_tickers:
-            mock_tickers.return_value = ['AMZN']
-            expected_output.append(app.Messages.view_securities())
+        expected_output.append(app.Messages.view_securities([]))
         expected_output.append(app.Messages.option_input)
 
         # She then chooses to see the updated market data in AMZN
@@ -77,9 +74,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
         # Happy with the results she returns the view securities page
         user_input.append('')
         mock_method = 'market_data.market_data.MarketData.get_securities_list'
-        with patch(mock_method, autospec=True) as mock_tickers:
-            mock_tickers.return_value = ['AMZN']
-            expected_output.append(app.Messages.view_securities())
+        expected_output.append(app.Messages.view_securities(['AMZN']))
         expected_output.append(app.Messages.option_input)
 
         # This time she selects to go back to the main menu
@@ -133,10 +128,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
         # Curious to see if there are any securities in the app already
         # he selects option 1 to view the securities.
         user_input.append(app.MenuOptions.VIEW_SECURITIES)
-        mock_method = 'market_data.market_data.MarketData.get_securities_list'
-        with patch(mock_method, autospec=True) as mock_tickers:
-            mock_tickers.return_value = []
-            expected_output.append(app.Messages.view_securities())
+        expected_output.append(app.Messages.view_securities([]))
         expected_output.append(app.Messages.option_input())
 
         # As expected there are no securities so he returns to the main menu
@@ -156,9 +148,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
         # He now checks that the security has been added to the list
         user_input.append(app.MenuOptions.VIEW_SECURITIES)
         mock_method = 'market_data.market_data.MarketData.get_securities_list'
-        with patch(mock_method, autospec=True) as mock_tickers:
-            mock_tickers.return_value = ['AMZN']
-            expected_output.append(app.Messages.view_securities())
+        expected_output.append(app.Messages.view_securities(['AMZN']))
         expected_output.append(app.Messages.option_input())
 
         # Satisfied with the results he returns to the main menu
