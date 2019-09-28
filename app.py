@@ -54,6 +54,9 @@ def process_user_input():
 
                     if view_input == 0:
                         return_to_main_menu = True
+                    elif view_input > 0 and view_input <= len(tickers):
+                        ticker = tickers[view_input - 1]
+                        print(Messages.no_security_data(ticker))
                     else:
                         print(Messages.invalid_option())
 
@@ -115,6 +118,10 @@ class Messages:
     def security_added(ticker):
         msg = f'\n{ticker} has been added'
         return msg
+
+    @staticmethod
+    def no_security_data(ticker):
+        return f'\nNo data avaiable for {ticker}'
 
     @staticmethod
     def quit():

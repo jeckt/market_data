@@ -158,6 +158,7 @@ class AppViewSecuritiesTests(unittest.TestCase):
 
         self.expected_output.append(app.Messages.view_securities(['AMZN']))
         self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.no_security_data('AMZN'))
         self.expected_output.append(app.Messages.view_securities(['AMZN']))
         self.expected_output.append(app.Messages.option_input())
 
