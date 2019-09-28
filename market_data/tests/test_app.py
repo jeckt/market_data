@@ -71,26 +71,6 @@ class AppMainMenuTests(unittest.TestCase):
 
         check_output(self.actual_output, self.expected_output)
 
-    def test_view_securities_with_no_securities_loaded(self):
-        self.user_input.append(app.MenuOptions.VIEW_SECURITIES)
-        self.user_input.append('0') # Return to Main Menu
-        self.user_input.append(app.MenuOptions.QUIT)
-
-        sys.argv = ['./app.py', self.database]
-        app.main()
-
-        mock_method = 'market_data.market_data.MarketData.get_securities_list'
-        with patch(mock_method, autospec=True) as mock_tickers:
-            mock_tickers.return_value = []
-            self.expected_output.append(app.Messages.view_securities())
-
-        self.expected_output.append(app.Messages.option_input())
-        self.expected_output.append(app.Messages.main_menu())
-        self.expected_output.append(app.Messages.option_input())
-        self.expected_output.append(app.Messages.quit())
-
-        check_output(self.actual_output, self.expected_output)
-
     def test_add_securities(self):
         self.user_input.append(app.MenuOptions.ADD_SECURITIES)
         self.user_input.append('AMZN')
@@ -126,6 +106,53 @@ class AppMainMenuTests(unittest.TestCase):
         mock_method = 'market_data.market_data.MarketData.get_securities_list'
         with patch(mock_method, autospec=True) as mock_tickers:
             mock_tickers.return_value = ['AMZN']
+            self.expected_output.append(app.Messages.view_securities())
+
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.quit())
+
+        check_output(self.actual_output, self.expected_output)
+
+class AppViewSecuritiesTests(unittest.TestCase):
+    def setUp(self):
+        self.database = DataAdapter.test_database
+
+        self.expected_output = []
+        self.actual_output = []
+        self.user_input = []
+
+        def mock_input(s):
+            self.actual_output.append(s)
+            if len(self.user_input) > 0:
+                return self.user_input.pop(0)
+
+        app.input = mock_input
+        app.print = lambda s: self.actual_output.append(s)
+
+        msg = app.Messages.new_database_created(self.database)
+        self.expected_output.append(msg)
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+
+    def tearDown(self):
+        try:
+            DataAdapter.delete_test_database()
+        except:
+            pass
+
+    def test_view_securities_with_no_securities_loaded(self):
+        self.user_input.append(app.MenuOptions.VIEW_SECURITIES)
+        self.user_input.append('0') # Return to Main Menu
+        self.user_input.append(app.MenuOptions.QUIT)
+
+        sys.argv = ['./app.py', self.database]
+        app.main()
+
+        mock_method = 'market_data.market_data.MarketData.get_securities_list'
+        with patch(mock_method, autospec=True) as mock_tickers:
+            mock_tickers.return_value = []
             self.expected_output.append(app.Messages.view_securities())
 
         self.expected_output.append(app.Messages.option_input())
@@ -186,6 +213,7 @@ class AppMainMenuTests(unittest.TestCase):
         self.expected_output.append(app.Messages.quit())
 
         check_output(self.actual_output, self.expected_output)
+
 
 
 class AppDatabaseTests(unittest.TestCase):
