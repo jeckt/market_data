@@ -8,8 +8,12 @@ sys.path.insert(0, os.path.split(os.path.split(file_path)[0])[0])
 
 import unittest
 from unittest.mock import patch
+
+from freezegun import freeze_time
+
 import app
 from market_data.data_adapter import DataAdapter
+import market_data.tests.utils as test_utils
 
 def check_output(actual_output, expected_output):
     for actual, expected in zip(actual_output, expected_output):
@@ -138,6 +142,49 @@ class AppViewSecuritiesTests(unittest.TestCase):
             DataAdapter.delete_test_database()
         except:
             pass
+
+    @freeze_time('2019-05-10')
+    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    def test_update_security_data(self, mock_scraper):
+        ticker, dt, expected_data = test_utils.get_expected_equity_data()
+        mock_scraper.return_value = expected_data
+
+        self.user_input.append(app.MenuOptions.ADD_SECURITIES)
+        self.user_input.append(ticker)
+        self.user_input.append(app.MenuOptions.UPDATE_MARKET_DATA)
+        self.user_input.append(app.MenuOptions.VIEW_SECURITIES)
+        self.user_input.append('1') # View AMZN security data
+        self.user_input.append('') # Press any key to return to view securities
+        self.user_input.append('0') # Return to Main Menu
+        self.user_input.append(app.MenuOptions.QUIT)
+
+        sys.argv = ['./app.py', self.database]
+        app.main()
+
+        # Add security
+        self.expected_output.append(app.Messages.add_security_input())
+        self.expected_output.append(app.Messages.security_added(ticker))
+
+        # Update market data
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.market_data_updated())
+
+        # View securities in app
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.view_securities([ticker]))
+        self.expected_output.append(app.Messages.option_input())
+
+        # View current security data in app
+        self.expected_output.append(app.Messages.view_security_data(ticker))
+        self.expected_output.append(app.Messages.view_securities([ticker]))
+        self.expected_output.append(app.Messages.option_input())
+
+        # Return to main menu and quit app
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.quit())
 
     def test_no_security_data(self):
         self.user_input.append(app.MenuOptions.ADD_SECURITIES)
