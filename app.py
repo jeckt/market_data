@@ -71,6 +71,9 @@ def process_user_input():
 
             print(Messages.security_added(ticker))
 
+        elif user_input == MenuOptions.UPDATE_MARKET_DATA:
+            print(Messages.market_data_updated())
+
         else:
             print(Messages.invalid_option())
 
@@ -129,15 +132,16 @@ class Messages:
     # which stores dates and equity data for a single security
     @staticmethod
     def view_security_data(ticker, equity_data_series):
-        msg = """
-        AMZN
-        ====
-
-        Date        | Open    | High    | Low     | Close
-        =====================================================
-        10-May-2019   1,898.00  1,903.79  1,856.00  1,889.98
-
-        """
+        msg = f'{ticker}\n'
+        msg += f'{"=" * len(ticker)}\n\n'
+        msg += 'Date         | Open     | High     | Low      | Close\n'
+        msg += '========================================================\n'
+        for data in equity_data_series:
+            msg += f'{data[0].strftime("%d-%b-%Y")}  | '
+            msg += f'{data[1].open:,.2f} | '
+            msg += f'{data[1].high:,.2f} | '
+            msg += f'{data[1].low:,.2f} | '
+            msg += f'{data[1].close:,.2f}  \n\n'
         return msg
 
     @staticmethod
