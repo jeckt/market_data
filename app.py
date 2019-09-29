@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import datetime
 from enum import IntEnum, unique
 from market_data.market_data import MarketData
 from market_data.data_adapter import DataAdapter, DatabaseNotFoundError
@@ -57,9 +58,10 @@ def process_user_input():
                         return_to_main_menu = True
                     elif view_input > 0 and view_input <= len(tickers):
                         ticker = tickers[view_input - 1]
-                        data = app.get_equity_data(ticker)
+                        data = app.get_equity_data_series(ticker)
                         if len(data) > 0:
-                            pass
+                            print(Messages.view_security_data(ticker, data))
+                            input(Messages.any_key_to_return())
                         else:
                             print(Messages.no_security_data(ticker))
                     else:
@@ -76,6 +78,10 @@ def process_user_input():
             print(Messages.security_added(ticker))
 
         elif user_input == MenuOptions.UPDATE_MARKET_DATA:
+            tickers = app.get_securities_list()
+            for ticker in tickers:
+                app.update_market_data(ticker, datetime.date.today())
+
             print(Messages.market_data_updated())
 
         else:

@@ -44,6 +44,11 @@ class MarketData:
         data = self._database.get_equity_data(ticker, dt)
         return data
 
+    def get_equity_data_series(self, ticker):
+        self._check_initialised()
+        data = self._database.get_equity_data_series(ticker)
+        return data
+
     def update_market_data(self, ticker, dt):
         self._check_initialised()
         if ticker in self._database.get_securities_list():

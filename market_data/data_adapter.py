@@ -104,6 +104,20 @@ class DataAdapter:
         else:
             raise InvalidTickerError(security)
 
+    # NOTE(steve): data series sorted by date (newest to oldest)
+    def get_equity_data_series(self, security):
+        if security in self.get_securities_list():
+            data = DataAdapter._load_data(self.conn_string)
+
+            # convert to list
+            ret_data = [(datetime.datetime.strptime(dt, '%d-%b-%Y'), d) for
+                         (dt, d) in data.equity_data[security].items()]
+
+            return sorted(ret_data, reverse=True)
+        else:
+            pass
+            raise InvalidTickerError(security)
+
 class TextDataModel:
 
     def __init__(self):

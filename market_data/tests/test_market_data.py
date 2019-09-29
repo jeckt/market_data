@@ -149,16 +149,20 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
         self.assertEqual(expected_data_1, actual_data_1)
 
         # NOTE(steve): should this be in a separate test???
-        data_series = new_app.get_equity_data(ticker)
+        data_series = new_app.get_equity_data_series(ticker)
         self.assertEqual(len(data_series), 2)
 
-        actual_data_1 = data_series[0]
-        self.assertEqual(expected_data_1, actual_data_1)
+        self.assertEqual(dt_1, data_series[0][0])
+        self.assertEqual(expected_data_1, data_series[0][1])
 
-        actual_data_2 = data_series[1]
-        self.assertEqual(expected_data_2, actual_data_2)
+        self.assertEqual(dt_2, data_series[1][0])
+        self.assertEqual(expected_data_2, data_series[1][1])
 
         new_app.close()
+
+    def test_get_equity_data_series_invalid_ticker_error(self):
+        with self.assertRaises(InvalidTickerError):
+            self.app.get_equity_data_series('AMZN')
 
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_get_equity_data_for_multiple_securities(self, mock_scraper):
