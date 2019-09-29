@@ -177,7 +177,9 @@ class AppViewSecuritiesTests(unittest.TestCase):
         self.expected_output.append(app.Messages.option_input())
 
         # View current security data in app
-        self.expected_output.append(app.Messages.view_security_data(ticker))
+        self.expected_output.append(app.Messages.view_security_data(ticker,
+                                    [(dt, expected_data)]))
+        self.expected_output.append(app.Messages.any_key_to_return())
         self.expected_output.append(app.Messages.view_securities([ticker]))
         self.expected_output.append(app.Messages.option_input())
 
@@ -185,6 +187,8 @@ class AppViewSecuritiesTests(unittest.TestCase):
         self.expected_output.append(app.Messages.main_menu())
         self.expected_output.append(app.Messages.option_input())
         self.expected_output.append(app.Messages.quit())
+
+        check_output(self.actual_output, self.expected_output)
 
     def test_no_security_data(self):
         self.user_input.append(app.MenuOptions.ADD_SECURITIES)

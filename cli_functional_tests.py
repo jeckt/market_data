@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 
+import sys
 import unittest
 from unittest.mock import patch
-import sys
+
+from freezegun import freeze_time
+
 import app
 from market_data.data_adapter import DataAdapter
+import market_data.tests.utils as test_utils
 
 # TODO(steve): we need to rethink how we expose the app messages,
 # options and methods to users (even in testing!!!)
@@ -19,7 +23,12 @@ class CommandLineInterfaceTests(unittest.TestCase):
         except:
             pass
 
-    def test_update_and_view_updated_security(self):
+    @freeze_time('2019-05-10')
+    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    def test_update_and_view_updated_security(self, mock_scraper):
+        ticker, dt, expected_data = test_utils.get_expected_equity_data()
+        mock_scraper.return_value = expected_data
+
         expected_output, actual_output = [], []
         # Mary on hearing from Alex about this new command line
         # app decides to try it.
@@ -47,7 +56,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
         # TODO(steve) we need to mock the update market data call so
         # that it returns the exact market data we expect.
         user_input.append(app.MenuOptions.UPDATE_MARKET_DATA)
-        expected_output.append('All market data has been updated...')
+        expected_output.append(app.Messages.market_data_updated())
         expected_output.append(app.Messages.main_menu())
         expected_output.append(app.Messages.option_input())
 
@@ -58,18 +67,9 @@ class CommandLineInterfaceTests(unittest.TestCase):
 
         # She then chooses to see the updated market data in AMZN
         user_input.append('1')
-        msg = """
-        AMZN
-        ====
-
-        Date        | Open    | High    | Low     | Close
-        =====================================================
-        10-May-2019   1,898.00  1,903.79  1,856.00  1,889.98
-
-        """
-        expected_output.append(msg)
-        msg = 'Press any key to return to view securities page...'
-        expected_output.append(msg)
+        expected_output.append(app.Messages.view_security_data(ticker,
+                                    [(dt, expected_data)]))
+        expected_output.append(app.Messages.any_key_to_return())
 
         # Happy with the results she returns the view securities page
         user_input.append('')

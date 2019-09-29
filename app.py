@@ -11,7 +11,8 @@ app = MarketData()
 class MenuOptions(IntEnum):
     VIEW_SECURITIES = 1
     ADD_SECURITIES = 2
-    QUIT = 3
+    UPDATE_MARKET_DATA = 3
+    QUIT = 4
 
 def main():
     if len(sys.argv) > 1:
@@ -86,6 +87,7 @@ class Messages:
         msg = 'Please select from the following options:\n\n'
         msg += f'\t{MenuOptions.VIEW_SECURITIES.value}. View Securities\n'
         msg += f'\t{MenuOptions.ADD_SECURITIES.value}. Add Securities\n'
+        msg += f'\t{MenuOptions.UPDATE_MARKET_DATA.value}. Update Market Data\n'
         msg += f'\t{MenuOptions.QUIT.value}. Quit\n\n'
         return msg
 
@@ -122,6 +124,29 @@ class Messages:
     @staticmethod
     def no_security_data(ticker):
         return f'\nNo data avaiable for {ticker}'
+
+    # TODO(steve): equity_data_series should be a collection type class
+    # which stores dates and equity data for a single security
+    @staticmethod
+    def view_security_data(ticker, equity_data_series):
+        msg = """
+        AMZN
+        ====
+
+        Date        | Open    | High    | Low     | Close
+        =====================================================
+        10-May-2019   1,898.00  1,903.79  1,856.00  1,889.98
+
+        """
+        return msg
+
+    @staticmethod
+    def any_key_to_return():
+        return 'Press any key to return to view securities page...'
+
+    @staticmethod
+    def market_data_updated():
+        return 'All market data has been updated...'
 
     @staticmethod
     def quit():
