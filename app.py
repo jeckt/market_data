@@ -57,7 +57,11 @@ def process_user_input():
                         return_to_main_menu = True
                     elif view_input > 0 and view_input <= len(tickers):
                         ticker = tickers[view_input - 1]
-                        print(Messages.no_security_data(ticker))
+                        data = app.get_equity_data(ticker)
+                        if len(data) > 0:
+                            pass
+                        else:
+                            print(Messages.no_security_data(ticker))
                     else:
                         print(Messages.invalid_option())
 

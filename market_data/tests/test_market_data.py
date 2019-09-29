@@ -148,6 +148,16 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
         actual_data_1 = new_app.get_equity_data(ticker, dt_1)
         self.assertEqual(expected_data_1, actual_data_1)
 
+        # NOTE(steve): should this be in a separate test???
+        data_series = new_app.get_equity_data(ticker)
+        self.assertEqual(len(data_series), 2)
+
+        actual_data_1 = data_series[0]
+        self.assertEqual(expected_data_1, actual_data_1)
+
+        actual_data_2 = data_series[1]
+        self.assertEqual(expected_data_2, actual_data_2)
+
         new_app.close()
 
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)

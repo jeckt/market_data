@@ -172,6 +172,16 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
         actual_data_1 = self.database.get_equity_data(ticker, dt_1)
         self.assertEqual(expected_data_1, actual_data_1)
 
+        # NOTE(steve): should this be in its own test case???
+        data_series = self.database.get_equity_data(ticker)
+        self.assertEqual(len(data_series), 2)
+
+        actual_data_1 = data_series[0]
+        self.assertEqual(expected_data_1, actual_data_1)
+
+        actual_data_2 = data_series[1]
+        self.assertEqual(expected_data_2, actual_data_2)
+
     def test_get_equity_data_for_multiple_securities(self):
         self.database.insert_securities(['AMZN', 'GOOG'])
         dt = datetime.datetime(2019, 8, 27)
