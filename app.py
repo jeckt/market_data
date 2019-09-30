@@ -82,6 +82,11 @@ def process_user_input():
             tickers = app.get_securities_list()
             for ticker in tickers:
                 try:
+                    # TODO(steve): THIS WILL FAIL!!! datetime object will
+                    # have a time on it and this will cause issues when
+                    # scraping. We need to create better unit tests
+                    # to capture this in the scraper. Use freezegun!!!
+                    # TODO(steve): expose errors in debug mode!
                     app.update_market_data(ticker, datetime.datetime.today())
                 except InvalidTickerError:
                     pass
