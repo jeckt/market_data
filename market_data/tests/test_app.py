@@ -8,11 +8,13 @@ sys.path.insert(0, os.path.split(os.path.split(file_path)[0])[0])
 
 import unittest
 from unittest.mock import patch
+import datetime
 
 from freezegun import freeze_time
 
 import app
 from market_data.data_adapter import DataAdapter
+from market_data.scraper import InvalidDateError, InvalidTickerError
 import market_data.tests.utils as test_utils
 
 def check_output(actual_output, expected_output):
@@ -142,6 +144,94 @@ class AppViewSecuritiesTests(unittest.TestCase):
             DataAdapter.delete_test_database()
         except:
             pass
+
+    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    def test_update_security_data_on_invalid_ticker(self, mock_scraper):
+        ticker = 'AAMZNN'
+        mock_scraper.side_effect = InvalidTickerError(ticker)
+
+        self.user_input.append(app.MenuOptions.ADD_SECURITIES)
+        self.user_input.append(ticker)
+        self.user_input.append(app.MenuOptions.UPDATE_MARKET_DATA)
+        self.user_input.append(app.MenuOptions.VIEW_SECURITIES)
+        self.user_input.append('1') # View AMZN security data
+        self.user_input.append('0') # Return to Main Menu
+        self.user_input.append(app.MenuOptions.QUIT)
+
+        sys.argv = ['./app.py', self.database]
+        app.main()
+
+        # Add security
+        self.expected_output.append(app.Messages.add_security_input())
+        self.expected_output.append(app.Messages.security_added(ticker))
+
+        # Update market data
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.market_data_updated())
+
+        # View securities in app
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.view_securities([ticker]))
+        self.expected_output.append(app.Messages.option_input())
+
+        # View current security data in app
+        self.expected_output.append(app.Messages.no_security_data(ticker))
+        self.expected_output.append(app.Messages.view_securities([ticker]))
+        self.expected_output.append(app.Messages.option_input())
+
+        # Quit
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.quit())
+
+        check_output(self.actual_output, self.expected_output)
+
+    @freeze_time('2019-09-29') # Sunday
+    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    def test_update_security_data_on_invalid_date(self, mock_scraper):
+        ticker = 'AMZN'
+        dt = datetime.datetime.today()
+        mock_scraper.side_effect = InvalidDateError(f'{ticker}: {dt}')
+
+        self.user_input.append(app.MenuOptions.ADD_SECURITIES)
+        self.user_input.append(ticker)
+        self.user_input.append(app.MenuOptions.UPDATE_MARKET_DATA)
+        self.user_input.append(app.MenuOptions.VIEW_SECURITIES)
+        self.user_input.append('1') # View AMZN security data
+        self.user_input.append('0') # Return to Main Menu
+        self.user_input.append(app.MenuOptions.QUIT)
+
+        sys.argv = ['./app.py', self.database]
+        app.main()
+
+        # Add security
+        self.expected_output.append(app.Messages.add_security_input())
+        self.expected_output.append(app.Messages.security_added(ticker))
+
+        # Update market data
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.market_data_updated())
+
+        # View securities in app
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.view_securities([ticker]))
+        self.expected_output.append(app.Messages.option_input())
+
+        # View current security data in app
+        self.expected_output.append(app.Messages.no_security_data(ticker))
+        self.expected_output.append(app.Messages.view_securities([ticker]))
+        self.expected_output.append(app.Messages.option_input())
+
+        # Quit
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+        self.expected_output.append(app.Messages.quit())
+
+        check_output(self.actual_output, self.expected_output)
 
     @freeze_time('2019-05-10')
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)

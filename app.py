@@ -4,6 +4,7 @@ import sys
 import datetime
 from enum import IntEnum, unique
 from market_data.market_data import MarketData
+from market_data.scraper import InvalidTickerError, InvalidDateError
 from market_data.data_adapter import DataAdapter, DatabaseNotFoundError
 
 app = MarketData()
@@ -80,7 +81,12 @@ def process_user_input():
         elif user_input == MenuOptions.UPDATE_MARKET_DATA:
             tickers = app.get_securities_list()
             for ticker in tickers:
-                app.update_market_data(ticker, datetime.date.today())
+                try:
+                    app.update_market_data(ticker, datetime.datetime.today())
+                except InvalidTickerError:
+                    pass
+                except InvalidDateError:
+                    pass
 
             print(Messages.market_data_updated())
 
