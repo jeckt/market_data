@@ -13,6 +13,13 @@ class Scraper:
         self.source = source
 
     def scrape_equity_data(self, ticker, date):
+        # NOTE(steve): this allows the scrape equity data to accept
+        # both datetime and date objects. It only needs to the date.
+        try:
+            date_only = date.date()
+        except AttributeError:
+            date_only = date
+
         url = r'https://finance.yahoo.com/quote/{ticker}/history?p={ticker}'
         req = urllib.request.Request(url.replace('{ticker}', ticker))
         with urllib.request.urlopen(req) as response:
@@ -33,8 +40,10 @@ class Scraper:
             for row in data_table.children:
                 values = [col.next_element.text for col in
                           row.children if col.find('span')]
-                values[0] = datetime.datetime.strptime(values[0], '%b %d, %Y')
-                if values[0] == date:
+
+                dt = datetime.datetime.strptime(values[0], '%b %d, %Y')
+                values[0] = dt.date()
+                if values[0] == date_only:
                     d = EquityData(*(v.replace(',', '') for v in values[1:]))
                     return d
         except:

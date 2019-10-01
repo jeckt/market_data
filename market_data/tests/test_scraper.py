@@ -53,6 +53,23 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
                          msg=f'res: {results} != ex: {expected_data}')
 
     @patch('urllib.request.urlopen', autospec=True)
+    def test_scrape_equity_data_with_date_and_time(self, mock_urlopen):
+        ticker, dt, expected_data = test_utils.get_expected_equity_data()
+        scraper = Scraper('yahoo')
+
+        dt = datetime.datetime(dt.year, dt.month, dt.day, 19, 35, 33)
+
+        mock_urlopen_context = mock_urlopen.return_value.__enter__.return_value
+        mock_urlopen_context.status = 200
+        mock_urlopen_context.read.return_value = self.load_test_data()
+
+        results = scraper.scrape_equity_data(ticker, dt)
+
+        self.assertIsInstance(results, EquityData)
+        self.assertEqual(results, expected_data,
+                         msg=f'res: {results} != ex: {expected_data}')
+
+    @patch('urllib.request.urlopen', autospec=True)
     def test_scrape_invalid_date(self, mock_urlopen):
         ticker = 'AMZN'
         dt = datetime.datetime(2019, 9, 3)
