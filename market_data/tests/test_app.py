@@ -118,7 +118,7 @@ class AppMainMenuTests(unittest.TestCase):
 
         check_output(self.actual_output, self.expected_output)
 
-class AppViewSecuritiesTests(unittest.TestCase):
+class AppUpdateMarketDataTests(unittest.TestCase):
     def setUp(self):
         self.database = DataAdapter.test_database
 
@@ -233,6 +233,70 @@ class AppViewSecuritiesTests(unittest.TestCase):
 
         check_output(self.actual_output, self.expected_output)
 
+    # TODO(steve): isn't this duplication of the functional cli test???
+    @freeze_time('2019-08-23')
+    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    def test_update_security_data_on_multiple_dates(self, mock_scraper):
+        # Load test data
+        dataset = test_utils.load_test_data()
+        ticker = 'AMZN'
+        dt1 = datetime.datetime(2019, 8, 23)
+        expected_data_dt1 = test_utils.get_test_data(dataset, ticker, dt1)
+        dt2 = datetime.datetime(2019, 8, 26)
+        expected_data_dt2 = test_utils.get_test_data(dataset, ticker, dt2)
+        dt3 = datetime.datetime(2019, 8, 27)
+        expected_data_dt3 = test_utils.get_test_data(dataset, ticker, dt3)
+        data_series = [
+            (dt1, expected_data_dt1),
+            (dt2, expected_data_dt2),
+            (dt3, expected_data_dt3)
+        ]
+
+        # Create an existing database with data already in the database
+        DataAdapter.create_test_database()
+        data = DataAdapter.connect(self.database)
+        data.insert_securities([ticker])
+
+        data.update_market_data(ticker, (dt1, expected_data_dt1))
+        data.close()
+
+        sys.argv = ['./app.py', self.database]
+        self.expected_output = []
+        self.expected_output.append(
+            app.Messages.load_existing_database(self.database)
+        )
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+
+        mock_scraper.side_effect = [expected_data_dt2, expected_data_dt3]
+        self.user_input.append(app.MenuOptions.UPDATE_MARKET_DATA)
+        self.expected_output.append(app.Messages.market_data_updated())
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+
+        self.user_input.append(app.MenuOptions.VIEW_SECURITIES)
+        self.expected_output.append(app.Messages.view_securities(['AMZN']))
+        self.expected_output.append(app.Messages.option_input())
+
+        self.user_input.append('1')
+        self.expected_output.append(
+            app.Messages.view_security_data(ticker, data_series)
+        )
+        self.expected_output.append(app.Messages.any_key_to_return())
+
+        self.user_input.append('')
+        self.expected_output.append(app.Messages.view_securities(['AMZN']))
+        self.expected_output.append(app.Messages.option_input())
+        self.user_input.append('0')
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+        self.user_input.append(app.MenuOptions.QUIT)
+        self.expected_output.append(app.Messages.quit())
+
+        app.main()
+
+        check_output(self.actual_output, self.expected_output)
+
     @freeze_time('2019-05-10')
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_update_security_data(self, mock_scraper):
@@ -279,6 +343,33 @@ class AppViewSecuritiesTests(unittest.TestCase):
         self.expected_output.append(app.Messages.quit())
 
         check_output(self.actual_output, self.expected_output)
+
+class AppViewSecuritiesTests(unittest.TestCase):
+    def setUp(self):
+        self.database = DataAdapter.test_database
+
+        self.expected_output = []
+        self.actual_output = []
+        self.user_input = []
+
+        def mock_input(s):
+            self.actual_output.append(s)
+            if len(self.user_input) > 0:
+                return self.user_input.pop(0)
+
+        app.input = mock_input
+        app.print = lambda s: self.actual_output.append(s)
+
+        msg = app.Messages.new_database_created(self.database)
+        self.expected_output.append(msg)
+        self.expected_output.append(app.Messages.main_menu())
+        self.expected_output.append(app.Messages.option_input())
+
+    def tearDown(self):
+        try:
+            DataAdapter.delete_test_database()
+        except:
+            pass
 
     def test_no_security_data(self):
         self.user_input.append(app.MenuOptions.ADD_SECURITIES)
