@@ -46,9 +46,9 @@ class CommandLineInterfaceTests(unittest.TestCase):
         dt3 = datetime.datetime(2019, 8, 27)
         expected_data_dt3 = test_utils.get_test_data(dataset, ticker, dt3)
         data_series = [
-            (dt1, expected_data_dt1),
+            (dt3, expected_data_dt3),
             (dt2, expected_data_dt2),
-            (dt3, expected_data_dt3)
+            (dt1, expected_data_dt1)
         ]
 
         # Create an existing database with data already in the database

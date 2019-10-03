@@ -234,7 +234,7 @@ class AppUpdateMarketDataTests(unittest.TestCase):
         check_output(self.actual_output, self.expected_output)
 
     # TODO(steve): isn't this duplication of the functional cli test???
-    @freeze_time('2019-08-23')
+    @freeze_time('2019-08-27')
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_update_security_data_on_multiple_dates(self, mock_scraper):
         # Load test data
@@ -247,9 +247,9 @@ class AppUpdateMarketDataTests(unittest.TestCase):
         dt3 = datetime.datetime(2019, 8, 27)
         expected_data_dt3 = test_utils.get_test_data(dataset, ticker, dt3)
         data_series = [
-            (dt1, expected_data_dt1),
+            (dt3, expected_data_dt3),
             (dt2, expected_data_dt2),
-            (dt3, expected_data_dt3)
+            (dt1, expected_data_dt1)
         ]
 
         # Create an existing database with data already in the database
