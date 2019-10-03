@@ -1,6 +1,6 @@
 import json
 from market_data.scraper import Scraper
-from market_data.data import InvalidTickerError, InvalidDateError
+from market_data.data import InvalidTickerError, InvalidDateError, NoDataError
 from market_data.data_adapter import DatabaseNotFoundError
 from market_data.data_adapter import DataAdapter
 
@@ -48,6 +48,14 @@ class MarketData:
         self._check_initialised()
         data = self._database.get_equity_data_series(ticker)
         return data
+
+    def get_latest_equity_data(self, ticker):
+        self._check_initialised()
+        data = self.get_equity_data_series(ticker)
+        if len(data) > 0:
+            return data[0]
+        else:
+            raise NoDataError(ticker)
 
     def update_market_data(self, ticker, dt):
         self._check_initialised()

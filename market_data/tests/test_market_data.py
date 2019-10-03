@@ -15,7 +15,7 @@ import json
 from market_data.market_data import MarketData
 from market_data.market_data import NotInitialisedError
 from market_data.data import EquityData
-from market_data.data import InvalidTickerError, InvalidDateError
+from market_data.data import InvalidTickerError, InvalidDateError, NoDataError
 from market_data.data_adapter import DataAdapter, DatabaseNotFoundError
 import market_data.tests.utils as test_utils
 
@@ -269,8 +269,13 @@ class EquityDataTests(unittest.TestCase):
         mock_scraper.return_value = expected_data_1
         self.app.update_market_data(ticker, dt_1)
 
+        dt_3 = datetime.datetime(2019, 8, 23)
+        expected_data_3 = test_utils.get_test_data(test_data, ticker, dt_3)
+        mock_scraper.return_value = expected_data_3
+        self.app.update_market_data(ticker, dt_3)
+
         dt, actual_data = self.app.get_latest_equity_data(ticker)
-        self.assertEqual(dt1, dt)
+        self.assertEqual(dt_1, dt)
         self.assertEqual(expected_data_1, actual_data)
 
     def test_get_latest_equity_data_invalid_ticker_error(self):
