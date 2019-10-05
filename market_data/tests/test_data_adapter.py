@@ -7,15 +7,13 @@ file_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
 sys.path.insert(0, os.path.split(os.path.split(file_path)[0])[0])
 
 import unittest
-from unittest import skip
 import datetime
-import json
-from market_data.data_adapter import DataAdapter, TextDataModel
+from market_data.data_adapter import DataAdapter
 from market_data.data_adapter import DatabaseExistsError, DatabaseNotFoundError
 from market_data.data import EquityData, InvalidTickerError, InvalidDateError
 import market_data.tests.utils as test_utils
 
-class DataAdapterTestDatabaseTests(unittest.TestCase):
+class DataAdapterTests(unittest.TestCase):
 
     def tearDown(self):
         # NOTE(steve): I think it is acceptable to suppress
@@ -53,19 +51,6 @@ class DataAdapterTestDatabaseTests(unittest.TestCase):
         self.assertTrue(os.path.isfile(DataAdapter.test_database))
         da = DataAdapter.connect(DataAdapter.test_database)
         self.assertEqual(da.conn_string, DataAdapter.test_database)
-
-class DataAdapterTests(unittest.TestCase):
-
-    def tearDown(self):
-        if os.path.isfile(DataAdapter.prod_database):
-            os.remove(DataAdapter.prod_database)
-
-    def test_create_and_connect_to_prod_database_by_default(self):
-        self.assertFalse(os.path.isfile(DataAdapter.prod_database))
-        da = DataAdapter.connect()
-        self.assertTrue(os.path.isfile(DataAdapter.prod_database))
-        self.assertEqual(da.conn_string, DataAdapter.prod_database)
-        da.close()
 
     def test_connect_to_non_existing_database_throws_error(self):
         self.assertFalse(os.path.isfile('newdb.json'))
@@ -217,72 +202,6 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
 
         with self.assertRaises(InvalidDateError):
             self.database.get_equity_data(ticker, dt)
-
-class TextDataModelTests(unittest.TestCase):
-
-    def setUp(self):
-        ticker, dt, equity_data = test_utils.get_expected_equity_data()
-        self.ticker, self.dt, self.equity_data = ticker, dt, equity_data
-        self.date_string = dt.strftime('%d-%b-%Y')
-
-    def get_json_from_dict_data(self):
-        data_dict = {
-            "securities": [self.ticker, 'GOOG', 'TLS.AX'],
-            self.ticker: {
-                self.date_string: {
-                    'open': '1898.00',
-                    'high': '1903.79',
-                    'low': '1856.00',
-                    'close': '1889.98',
-                    'adj_close': '1889.98',
-                    'volume': int(5718000)
-                }
-            }
-        }
-        json_data = json.dumps(data_dict)
-
-        return json_data
-
-    def get_text_data_model_data(self):
-        data = TextDataModel()
-        data.securities = [self.ticker, 'GOOG', 'TLS.AX']
-        data.equity_data = {
-            self.ticker: { self.date_string: self.equity_data }
-        }
-
-        return data
-
-    def test_equality(self):
-        data_1 = self.get_text_data_model_data()
-        data_2 = self.get_text_data_model_data()
-        self.assertEqual(data_1, data_2)
-
-    def test_json_encoder_can_serialise_text_data_model(self):
-        # set up
-        data = self.get_text_data_model_data()
-
-        # method
-        actual_data = json.dumps(data, default=TextDataModel.json_encoder)
-
-        # expected output
-        json_data = self.get_json_from_dict_data()
-
-        # test
-        self.assertEqual(json_data, actual_data)
-
-    def test_json_decoder_can_deserialise_text_data_model(self):
-        # set up
-        json_data = self.get_json_from_dict_data()
-
-        # method
-        actual_data = json.loads(json_data,
-                                 object_hook=TextDataModel.json_decoder)
-
-        # expected output
-        expected_data = self.get_text_data_model_data()
-
-        # test
-        self.assertEqual(expected_data, actual_data)
 
 if __name__ == '__main__':
     unittest.main()
