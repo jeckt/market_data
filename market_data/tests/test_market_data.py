@@ -19,20 +19,26 @@ from market_data.data import InvalidTickerError, InvalidDateError, NoDataError
 from market_data.data_adapter import DataAdapter, DatabaseNotFoundError
 import market_data.tests.utils as test_utils
 
+def common_setup(obj):
+    obj.database = DataAdapter.test_database
+    DataAdapter.create_test_database()
+    obj.app = MarketData()
+    obj.app.run(database=obj.database)
+
+def common_teardown(obj):
+    obj.app.close()
+    try:
+        DataAdapter.delete_test_database()
+    except:
+        pass
+
 class MarketDataTests(unittest.TestCase):
 
     def setUp(self):
-        self.database = DataAdapter.test_database
-        DataAdapter.create_test_database()
-        self.app = MarketData()
-        self.app.run(database=self.database)
+        common_setup(self)
 
     def tearDown(self):
-        self.app.close()
-        try:
-            DataAdapter.delete_test_database()
-        except:
-            pass
+        common_teardown(self)
 
     # TODO(steve): Is there are better way to test a set of 
     # methods are only accessible when class is initialised
@@ -67,17 +73,10 @@ class MarketDataTests(unittest.TestCase):
 class MarketDataPersistentStorageTests(unittest.TestCase):
 
     def setUp(self):
-        self.database = DataAdapter.test_database
-        DataAdapter.create_test_database()
-        self.app = MarketData()
-        self.app.run(database=self.database)
+        common_setup(self)
 
     def tearDown(self):
-        self.app.close()
-        try:
-            DataAdapter.delete_test_database()
-        except:
-            pass
+        common_teardown(self)
 
     def test_added_security_is_in_list_on_reopen(self):
         ticker = 'TLS'
@@ -124,26 +123,27 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
 class EquityDataTests(unittest.TestCase):
 
     def setUp(self):
-        self.database = DataAdapter.test_database
-        DataAdapter.create_test_database()
-        self.app = MarketData()
-        self.app.run(database=self.database)
+        common_setup(self)
+        self.ticker = 'AMZN'
+        self.test_date = datetime.datetime(2019, 8, 27)
 
     def tearDown(self):
-        self.app.close()
-        try:
-            DataAdapter.delete_test_database()
-        except:
-            pass
+        common_teardown(self)
+
+    def update_market_data(self, test_data, mock_scraper, ticker, dt):
+        expected_data = test_utils.get_test_data(test_data, ticker, dt)
+        mock_scraper.return_value = expected_data
+        self.app.update_market_data(ticker, dt)
+        return expected_data
 
     def test_get_equity_data_on_security_not_in_list(self):
         with self.assertRaises(InvalidTickerError):
-            self.app.get_equity_data('AMZN', datetime.datetime(2019, 8, 27))
+            self.app.get_equity_data(self.ticker, self.test_date)
 
     def test_get_equity_data_on_invalid_date(self):
-        self.app.add_security('AMZN')
+        self.app.add_security(self.ticker)
         with self.assertRaises(InvalidDateError):
-            self.app.get_equity_data('AMZN', datetime.datetime(2019, 8, 27))
+            self.app.get_equity_data(self.ticker, self.test_date)
 
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_invalid_ticker_in_update_market_data(self, mock_scraper):
@@ -151,21 +151,19 @@ class EquityDataTests(unittest.TestCase):
 
         mock_scraper.side_effect = InvalidTickerError
         with self.assertRaises(InvalidTickerError):
-            self.app.update_market_data('AMZNN', datetime.datetime(2019, 8, 27))
+            self.app.update_market_data('AMZNN', self.test_date)
 
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_invalid_date_in_update_market_data(self, mock_scraper):
-        self.app.add_security('AMZN')
+        self.app.add_security(self.ticker)
 
         mock_scraper.side_effect = InvalidDateError
         with self.assertRaises(InvalidDateError):
-            self.app.update_market_data('AMZN', datetime.datetime(2017, 8, 25))
+            self.app.update_market_data(self.ticker, self.test_date)
 
     def test_update_market_data_on_security_not_in_list(self):
-        ticker = 'AMZN'
-        dt = datetime.datetime(2019, 8, 27)
         with self.assertRaises(InvalidTickerError):
-            self.app.update_market_data(ticker, dt)
+            self.app.update_market_data(self.ticker, self.test_date)
 
     # TODO(steve): should we split these two tests by
     # injecting the market data directly into the test database???
@@ -183,33 +181,29 @@ class EquityDataTests(unittest.TestCase):
 
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_get_equity_data_for_multiple_dates(self, mock_scraper):
-        ticker = 'AMZN'
-        self.app.add_security(ticker)
+        self.app.add_security(self.ticker)
 
-        dt_1 = datetime.datetime(2019, 8, 27)
         test_data = test_utils.load_test_data()
-        expected_data_1 = test_utils.get_test_data(test_data, ticker, dt_1)
-        mock_scraper.return_value = expected_data_1
-        self.app.update_market_data(ticker, dt_1)
+        dt_1 = datetime.datetime(2019, 8, 27)
+        expected_data_1 = self.update_market_data(test_data, mock_scraper,
+                                                  self.ticker, dt_1)
 
         dt_2 = datetime.datetime(2019, 8, 26)
-        expected_data_2 = test_utils.get_test_data(test_data, ticker, dt_2)
-        mock_scraper.return_value = expected_data_2
-        self.app.update_market_data(ticker, dt_2)
-
+        expected_data_2 = self.update_market_data(test_data, mock_scraper,
+                                                  self.ticker, dt_2)
         self.app.close()
 
         new_app = MarketData()
         new_app.run(database=self.database)
 
-        actual_data_2 = new_app.get_equity_data(ticker, dt_2)
+        actual_data_2 = new_app.get_equity_data(self.ticker, dt_2)
         self.assertEqual(expected_data_2, actual_data_2)
 
-        actual_data_1 = new_app.get_equity_data(ticker, dt_1)
+        actual_data_1 = new_app.get_equity_data(self.ticker, dt_1)
         self.assertEqual(expected_data_1, actual_data_1)
 
         # NOTE(steve): should this be in a separate test???
-        data_series = new_app.get_equity_data_series(ticker)
+        data_series = new_app.get_equity_data_series(self.ticker)
         self.assertEqual(len(data_series), 2)
 
         self.assertEqual(dt_1, data_series[0][0])
@@ -220,10 +214,6 @@ class EquityDataTests(unittest.TestCase):
 
         new_app.close()
 
-    def test_get_equity_data_series_invalid_ticker_error(self):
-        with self.assertRaises(InvalidTickerError):
-            self.app.get_equity_data_series('AMZN')
-
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_get_equity_data_for_multiple_securities(self, mock_scraper):
         dt = datetime.datetime(2019, 8, 27)
@@ -231,13 +221,11 @@ class EquityDataTests(unittest.TestCase):
         self.app.add_security('GOOG')
 
         test_data = test_utils.load_test_data()
-        expected_data_1 = test_utils.get_test_data(test_data, 'AMZN', dt)
-        mock_scraper.return_value = expected_data_1
-        self.app.update_market_data('AMZN', dt)
+        expected_data_1 = self.update_market_data(test_data, mock_scraper,
+                                                  'AMZN', dt)
 
-        expected_data_2 = test_utils.get_test_data(test_data, 'GOOG', dt)
-        mock_scraper.return_value = expected_data_2
-        self.app.update_market_data('GOOG', dt)
+        expected_data_2 = self.update_market_data(test_data, mock_scraper,
+                                                  'GOOG', dt)
 
         self.app.close()
 
@@ -252,42 +240,39 @@ class EquityDataTests(unittest.TestCase):
 
         new_app.close()
 
+    def test_get_equity_data_series_invalid_ticker_error(self):
+        with self.assertRaises(InvalidTickerError):
+            self.app.get_equity_data_series(self.ticker)
+
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_get_latest_equity_data_for_security(self, mock_scraper):
-        ticker = 'AMZN'
-        self.app.add_security(ticker)
+        self.app.add_security(self.ticker)
 
         test_data = test_utils.load_test_data()
 
         dt_2 = datetime.datetime(2019, 8, 26)
-        expected_data_2 = test_utils.get_test_data(test_data, ticker, dt_2)
-        mock_scraper.return_value = expected_data_2
-        self.app.update_market_data(ticker, dt_2)
-
+        expected_data_2 = self.update_market_data(test_data, mock_scraper,
+                                                  self.ticker, dt_2)
         dt_1 = datetime.datetime(2019, 8, 27)
-        expected_data_1 = test_utils.get_test_data(test_data, ticker, dt_1)
-        mock_scraper.return_value = expected_data_1
-        self.app.update_market_data(ticker, dt_1)
-
+        expected_data_1 = self.update_market_data(test_data, mock_scraper,
+                                                  self.ticker, dt_1)
         dt_3 = datetime.datetime(2019, 8, 23)
-        expected_data_3 = test_utils.get_test_data(test_data, ticker, dt_3)
-        mock_scraper.return_value = expected_data_3
-        self.app.update_market_data(ticker, dt_3)
+        expected_data_3 = self.update_market_data(test_data, mock_scraper,
+                                                  self.ticker, dt_3)
 
-        dt, actual_data = self.app.get_latest_equity_data(ticker)
+        dt, actual_data = self.app.get_latest_equity_data(self.ticker)
         self.assertEqual(dt_1, dt)
         self.assertEqual(expected_data_1, actual_data)
 
     def test_get_latest_equity_data_invalid_ticker_error(self):
         with self.assertRaises(InvalidTickerError):
-            self.app.get_latest_equity_data('AMZN')
+            self.app.get_latest_equity_data(self.ticker)
 
     def test_get_latest_equity_data_no_data_error(self):
-        ticker = 'AMZN'
-        self.app.add_security(ticker)
+        self.app.add_security(self.ticker)
 
         with self.assertRaises(NoDataError):
-            self.app.get_latest_equity_data(ticker)
+            self.app.get_latest_equity_data(self.ticker)
 
 if __name__ == '__main__':
     unittest.main()
