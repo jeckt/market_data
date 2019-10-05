@@ -13,7 +13,7 @@ import datetime
 from freezegun import freeze_time
 
 import app
-from market_data.data_adapter import DataAdapter
+import market_data.data_adapter as data_adapter
 from market_data.scraper import InvalidDateError, InvalidTickerError
 import market_data.tests.utils as test_utils
 
@@ -28,7 +28,8 @@ def check_output(actual_output, expected_output):
 class AppMainMenuTests(unittest.TestCase):
 
     def setUp(self):
-        self.database = DataAdapter.test_database
+        self.da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
+        self.database = self.da.test_database
 
         self.expected_output = []
         self.actual_output = []
@@ -49,7 +50,7 @@ class AppMainMenuTests(unittest.TestCase):
 
     def tearDown(self):
         try:
-            DataAdapter.delete_test_database()
+            self.da.delete_test_database()
         except:
             pass
 
@@ -120,7 +121,8 @@ class AppMainMenuTests(unittest.TestCase):
 
 class AppUpdateMarketDataTests(unittest.TestCase):
     def setUp(self):
-        self.database = DataAdapter.test_database
+        self.da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
+        self.database = self.da.test_database
 
         self.expected_output = []
         self.actual_output = []
@@ -141,7 +143,7 @@ class AppUpdateMarketDataTests(unittest.TestCase):
 
     def tearDown(self):
         try:
-            DataAdapter.delete_test_database()
+            self.da.delete_test_database()
         except:
             pass
 
@@ -253,8 +255,8 @@ class AppUpdateMarketDataTests(unittest.TestCase):
         ]
 
         # Create an existing database with data already in the database
-        DataAdapter.create_test_database()
-        data = DataAdapter.connect(self.database)
+        self.da.create_test_database()
+        data = self.da.connect(self.database)
         data.insert_securities([ticker])
 
         data.update_market_data(ticker, (dt1, expected_data_dt1))
@@ -346,7 +348,8 @@ class AppUpdateMarketDataTests(unittest.TestCase):
 
 class AppViewSecuritiesTests(unittest.TestCase):
     def setUp(self):
-        self.database = DataAdapter.test_database
+        self.da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
+        self.database = self.da.test_database
 
         self.expected_output = []
         self.actual_output = []
@@ -367,7 +370,7 @@ class AppViewSecuritiesTests(unittest.TestCase):
 
     def tearDown(self):
         try:
-            DataAdapter.delete_test_database()
+            self.da.delete_test_database()
         except:
             pass
 

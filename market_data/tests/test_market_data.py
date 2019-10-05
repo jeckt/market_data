@@ -16,19 +16,20 @@ from market_data.market_data import MarketData
 from market_data.market_data import NotInitialisedError
 from market_data.data import EquityData
 from market_data.data import InvalidTickerError, InvalidDateError, NoDataError
-from market_data.data_adapter import DataAdapter, DatabaseNotFoundError
+import market_data.data_adapter as data_adapter
 import market_data.tests.utils as test_utils
 
 def common_setup(obj):
-    obj.database = DataAdapter.test_database
-    DataAdapter.create_test_database()
+    obj.da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
+    obj.database = obj.da.test_database
+    obj.da.create_test_database()
     obj.app = MarketData()
     obj.app.run(database=obj.database)
 
 def common_teardown(obj):
     obj.app.close()
     try:
-        DataAdapter.delete_test_database()
+        obj.da.delete_test_database()
     except:
         pass
 
@@ -93,11 +94,12 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
         self.assertEqual([], self.app.get_securities_list())
 
     def test_raise_database_not_found_error(self):
-        with self.assertRaises(DatabaseNotFoundError):
+        with self.assertRaises(data_adapter.DatabaseNotFoundError):
             self.app.run(database='db.json')
 
-    @patch('market_data.data_adapter.DataAdapter.close', autospec=True)
-    def test_data_adaptor_closed_on_app_close(self, mock_close):
+    #TODO(steve): how does patch work with abstract classes?
+    @patch('market_data.data_adapter.JsonDataAdapter.close', autospec=True)
+    def test_data_adapter_closed_on_app_close(self, mock_close):
         self.app.close()
         mock_close.assert_called_once()
 

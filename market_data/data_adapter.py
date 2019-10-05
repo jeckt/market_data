@@ -1,16 +1,76 @@
 import os
 import json
 import datetime
+from abc import ABCMeta, abstractmethod, abstractproperty
+from enum import Enum
 
 from market_data.data import EquityData, InvalidTickerError, InvalidDateError
 
-# TODO(steve): should we turn the DataAdapter into a 
-# abstract class to provide an interface for the rest
-# of the app??
-class DataAdapter:
+# NOTE(steve): a factory method to return a type of data adapter based on
+# source
+def get_adapter(source):
+    if source == DataAdapterSource.JSON:
+        return JsonDataAdapter
+    else:
+        raise InvalidDataAdapterSourceError(source)
 
+class DataAdapterSource(Enum):
+    JSON = 1
+
+class DataAdapter(metaclass=ABCMeta):
+
+    @abstractproperty
+    def test_database(self):
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
+    def create_test_database(cls):
+        pass
+
+    @classmethod
+    @abstractmethod
+    def delete_test_database(cls):
+        pass
+
+    @classmethod
+    @abstractmethod
+    def create_database(cls, database):
+        pass
+
+    @classmethod
+    @abstractmethod
+    def connect(cls, conn_string):
+        pass
+
+    @classmethod
+    @abstractmethod
+    def close(self):
+        pass
+
+    @abstractmethod
+    def get_securities_list(self):
+        pass
+
+    @abstractmethod
+    def insert_securities(self, securities_to_add):
+        pass
+
+    @abstractmethod
+    def update_market_data(self, security, equity_data):
+        pass
+
+    @abstractmethod
+    def get_equity_data(self, security, dt):
+        pass
+
+    @abstractmethod
+    def get_equity_data_series(self, security):
+        """Returns equity data series sorted by date (newest to oldest)"""
+        pass
+
+class JsonDataAdapter(DataAdapter):
     test_database = 'testdb.json'
-    prod_database = 'productiondb.json'
 
     @classmethod
     def create_test_database(cls):
@@ -27,12 +87,7 @@ class DataAdapter:
         os.remove(cls.test_database)
 
     @classmethod
-    def connect(cls, conn_string=None):
-        if conn_string is None:
-            conn_string = cls.prod_database
-            if not os.path.isfile(conn_string):
-                cls.create_database(conn_string)
-
+    def connect(cls, conn_string):
         if not os.path.isfile(conn_string):
             raise DatabaseNotFoundError(conn_string)
 
@@ -65,36 +120,36 @@ class DataAdapter:
         pass
 
     def get_securities_list(self):
-        return DataAdapter._load_data(self.conn_string).securities
+        return JsonDataAdapter._load_data(self.conn_string).securities
 
     # TODO(steve): we need to check with this creates 
     # a race condition?!?! I'm confident that it does
     def insert_securities(self, securities_to_add):
-        data = DataAdapter._load_data(self.conn_string)
+        data = JsonDataAdapter._load_data(self.conn_string)
         data.securities = list(set(data.securities + securities_to_add))
         for sec in securities_to_add:
             if not sec in data.equity_data:
                 data.equity_data[sec] = {}
 
-        DataAdapter._save_data(self.conn_string, data)
+        JsonDataAdapter._save_data(self.conn_string, data)
 
     def update_market_data(self, security, equity_data):
         securities = self.get_securities_list()
         if security in securities:
-            data = DataAdapter._load_data(self.conn_string)
+            data = JsonDataAdapter._load_data(self.conn_string)
             if security not in data.equity_data:
                 data.equity_data[security] = {}
 
             dt_key = equity_data[0].strftime('%d-%b-%Y')
             data.equity_data[security][dt_key] = equity_data[1]
 
-            DataAdapter._save_data(self.conn_string, data)
+            JsonDataAdapter._save_data(self.conn_string, data)
         else:
             raise InvalidTickerError
 
     def get_equity_data(self, security, dt):
         if security in self.get_securities_list():
-            data = DataAdapter._load_data(self.conn_string)
+            data = JsonDataAdapter._load_data(self.conn_string)
 
             dt_key = dt.strftime('%d-%b-%Y')
             if dt_key in data.equity_data[security]:
@@ -107,7 +162,7 @@ class DataAdapter:
     # NOTE(steve): data series sorted by date (newest to oldest)
     def get_equity_data_series(self, security):
         if security in self.get_securities_list():
-            data = DataAdapter._load_data(self.conn_string)
+            data = JsonDataAdapter._load_data(self.conn_string)
 
             # convert to list
             ret_data = [(datetime.datetime.strptime(dt, '%d-%b-%Y'), d) for
@@ -181,6 +236,9 @@ class TextDataModel:
     def __eq__(self, other):
         return (self.securities == other.securities and
                 self.equity_data == other.equity_data)
+
+class InvalidDataAdapterSourceError(Exception):
+    pass
 
 class DatabaseExistsError(Exception):
     pass

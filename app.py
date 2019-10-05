@@ -5,7 +5,7 @@ import datetime
 from enum import IntEnum, unique
 from market_data.market_data import MarketData
 from market_data.data import InvalidTickerError, InvalidDateError, NoDataError
-from market_data.data_adapter import DataAdapter, DatabaseNotFoundError
+import market_data.data_adapter as data_adapter
 
 app = MarketData()
 
@@ -25,8 +25,9 @@ def main():
             print(Messages.load_existing_database(conn_string))
             print(Messages.main_menu())
 
-        except DatabaseNotFoundError:
-            DataAdapter.create_database(conn_string)
+        except data_adapter.DatabaseNotFoundError:
+            da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
+            da.create_database(conn_string)
             app.run(conn_string)
 
             print(Messages.new_database_created(conn_string))

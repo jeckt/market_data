@@ -8,19 +8,20 @@ import datetime
 from market_data.market_data import MarketData
 from market_data.data import EquityData
 from market_data.data import InvalidTickerError, InvalidDateError
-from market_data.data_adapter import DataAdapter
+import market_data.data_adapter as data_adapter
 import market_data.tests.utils as test_utils
 
 class FunctionalTests(unittest.TestCase):
 
     def setUp(self):
         self.test_data = test_utils.load_test_data()
-        self.database = DataAdapter.test_database
-        DataAdapter.create_test_database()
+        self.da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
+        self.database = self.da.test_database
+        self.da.create_test_database()
 
     def tearDown(self):
         try:
-            DataAdapter.delete_test_database()
+            self.da.delete_test_database()
         except:
             pass
 

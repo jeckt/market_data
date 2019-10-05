@@ -9,7 +9,7 @@ from freezegun import freeze_time
 
 import app
 from app import Messages as msg
-from market_data.data_adapter import DataAdapter
+import market_data.data_adapter as data_adapter
 import market_data.tests.utils as test_utils
 
 # TODO(steve): we need to rethink how we expose the app messages,
@@ -17,7 +17,8 @@ import market_data.tests.utils as test_utils
 class CommandLineInterfaceTests(unittest.TestCase):
 
     def setUp(self):
-        self.database = DataAdapter.test_database
+        self.da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
+        self.database = self.da.test_database
         self.actual_output = []
         self.user_input = []
         def mock_input(s):
@@ -29,7 +30,7 @@ class CommandLineInterfaceTests(unittest.TestCase):
 
     def tearDown(self):
         try:
-            DataAdapter.delete_test_database()
+            self.da.delete_test_database()
         except:
             pass
 
@@ -52,8 +53,8 @@ class CommandLineInterfaceTests(unittest.TestCase):
         ]
 
         # Create an existing database with data already in the database
-        DataAdapter.create_test_database()
-        data = DataAdapter.connect(self.database)
+        self.da.create_test_database()
+        data = self.da.connect(self.database)
         data.insert_securities([ticker])
 
         data.update_market_data(ticker, (dt1, expected_data_dt1))

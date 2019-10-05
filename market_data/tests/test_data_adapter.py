@@ -8,12 +8,26 @@ sys.path.insert(0, os.path.split(os.path.split(file_path)[0])[0])
 
 import unittest
 import datetime
-from market_data.data_adapter import DataAdapter
+import market_data.data_adapter as data_adapter
+from market_data.data_adapter import DataAdapter, DataAdapterSource
 from market_data.data_adapter import DatabaseExistsError, DatabaseNotFoundError
 from market_data.data import EquityData, InvalidTickerError, InvalidDateError
 import market_data.tests.utils as test_utils
 
+class DataAdapterSourceTests(unittest.TestCase):
+
+    def test_invalid_data_adapter_source_raises_error(self):
+        with self.assertRaises(data_adapter.InvalidDataAdapterSourceError):
+            data_adapter.get_adapter('invalid_source')
+
+    def test_get_json_data_adapter_source(self):
+        da = data_adapter.get_adapter(DataAdapterSource.JSON)
+        self.assertTrue(type(da), data_adapter.JsonDataAdapter)
+
 class DataAdapterTests(unittest.TestCase):
+
+    def setUp(self):
+        self.da = data_adapter.get_adapter(DataAdapterSource.JSON)
 
     def tearDown(self):
         # NOTE(steve): I think it is acceptable to suppress
@@ -21,52 +35,53 @@ class DataAdapterTests(unittest.TestCase):
         # database is removed after each test and at the
         # same time we want to abstract the implementation
         try:
-            DataAdapter.delete_test_database()
+            self.da.delete_test_database()
         except:
             pass
 
     def test_create_test_database(self):
-        self.assertFalse(os.path.isfile(DataAdapter.test_database))
-        DataAdapter.create_test_database()
-        self.assertTrue(os.path.isfile(DataAdapter.test_database))
+        self.assertFalse(os.path.isfile(self.da.test_database))
+        self.da.create_test_database()
+        self.assertTrue(os.path.isfile(self.da.test_database))
 
     def test_delete_test_database(self):
-        DataAdapter.create_test_database()
-        self.assertTrue(os.path.isfile(DataAdapter.test_database))
-        DataAdapter.delete_test_database()
-        self.assertFalse(os.path.isfile(DataAdapter.test_database))
+        self.da.create_test_database()
+        self.assertTrue(os.path.isfile(self.da.test_database))
+        self.da.delete_test_database()
+        self.assertFalse(os.path.isfile(self.da.test_database))
 
     def test_create_existing_test_database_raises_error(self):
-        DataAdapter.create_test_database()
+        self.da.create_test_database()
         with self.assertRaises(DatabaseExistsError):
-            DataAdapter.create_test_database()
+            self.da.create_test_database()
 
     def test_delete_non_existing_test_database_raises_error(self):
-        self.assertFalse(os.path.isfile(DataAdapter.test_database))
+        self.assertFalse(os.path.isfile(self.da.test_database))
         with self.assertRaises(DatabaseNotFoundError):
-            DataAdapter.delete_test_database()
+            self.da.delete_test_database()
 
     def test_connect_to_test_database(self):
-        DataAdapter.create_test_database()
-        self.assertTrue(os.path.isfile(DataAdapter.test_database))
-        da = DataAdapter.connect(DataAdapter.test_database)
-        self.assertEqual(da.conn_string, DataAdapter.test_database)
+        self.da.create_test_database()
+        self.assertTrue(os.path.isfile(self.da.test_database))
+        da = self.da.connect(self.da.test_database)
+        self.assertEqual(da.conn_string, self.da.test_database)
 
     def test_connect_to_non_existing_database_throws_error(self):
         self.assertFalse(os.path.isfile('newdb.json'))
         with self.assertRaises(DatabaseNotFoundError):
-            DataAdapter.connect('newdb.json')
+            self.da.connect('newdb.json')
 
 class DataAdapterSecuritiesTests(unittest.TestCase):
 
     def setUp(self):
-        DataAdapter.create_test_database()
-        self.database = DataAdapter.connect(DataAdapter.test_database)
+        self.da = data_adapter.get_adapter(DataAdapterSource.JSON)
+        self.da.create_test_database()
+        self.database = self.da.connect(self.da.test_database)
 
     def tearDown(self):
         self.database.close()
         try:
-            DataAdapter.delete_test_database()
+            self.da.delete_test_database()
         except:
             pass
 

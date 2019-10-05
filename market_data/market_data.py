@@ -2,7 +2,7 @@ import json
 from market_data.scraper import Scraper
 from market_data.data import InvalidTickerError, InvalidDateError, NoDataError
 from market_data.data_adapter import DatabaseNotFoundError
-from market_data.data_adapter import DataAdapter
+import market_data.data_adapter as data_adapter
 
 class MarketData:
 
@@ -17,7 +17,8 @@ class MarketData:
     def run(self, database=None):
         self.init = True
         self._scraper = Scraper('yahoo')
-        self._database = DataAdapter.connect(database)
+        da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
+        self._database = da.connect(database)
 
     # NOTE(steve): this method will be used to clean up
     # all the dependency e.g. closing of the database
