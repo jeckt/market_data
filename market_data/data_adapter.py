@@ -1,17 +1,20 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
 from enum import Enum
+import market_data
 
 # NOTE(steve): a factory method to return a type of data adapter based on
 # source
 def get_adapter(source):
     if source == DataAdapterSource.JSON:
-        from market_data.json_data_adapter import JsonDataAdapter
-        return JsonDataAdapter
+        return market_data.json_data_adapter.JsonDataAdapter
+    elif source == DataAdapterSource.SQLITE3:
+        return market_data.sqlite3_data_adapter.Sqlite3DataAdapter
     else:
         raise InvalidDataAdapterSourceError(source)
 
 class DataAdapterSource(Enum):
     JSON = 1
+    SQLITE3 = 2
 
 class DataAdapter(metaclass=ABCMeta):
 
