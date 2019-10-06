@@ -11,6 +11,7 @@ import datetime
 import market_data.data_adapter as data_adapter
 from market_data.data_adapter import DataAdapter, DataAdapterSource
 from market_data.data_adapter import DatabaseExistsError, DatabaseNotFoundError
+from market_data.json_data_adapter import JsonDataAdapter
 from market_data.data import EquityData, InvalidTickerError, InvalidDateError
 import market_data.tests.utils as test_utils
 
@@ -22,7 +23,11 @@ class DataAdapterSourceTests(unittest.TestCase):
 
     def test_get_json_data_adapter_source(self):
         da = data_adapter.get_adapter(DataAdapterSource.JSON)
-        self.assertTrue(type(da), data_adapter.JsonDataAdapter)
+        self.assertTrue(type(da), JsonDataAdapter)
+
+    def test_get_sqlite3_data_adapter_source(self):
+        da = data_adapter.get_adapter(DataAdapterSource.SQLITE3)
+        self.assertTrue(type(da), data_adapter.Sqlite3DataAdapter)
 
 class DataAdapterTests(unittest.TestCase):
 

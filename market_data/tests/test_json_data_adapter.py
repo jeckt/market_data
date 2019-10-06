@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.split(os.path.split(file_path)[0])[0])
 
 import unittest
 import json
-from market_data.data_adapter import TextDataModel
+from market_data.json_data_adapter import TextDataModel
 import market_data.tests.utils as test_utils
 
 class TextDataModelTests(unittest.TestCase):

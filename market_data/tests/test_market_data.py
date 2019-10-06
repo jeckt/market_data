@@ -98,7 +98,7 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
             self.app.run(database='db.json')
 
     #TODO(steve): how does patch work with abstract classes?
-    @patch('market_data.data_adapter.JsonDataAdapter.close', autospec=True)
+    @patch('market_data.json_data_adapter.JsonDataAdapter.close', autospec=True)
     def test_data_adapter_closed_on_app_close(self, mock_close):
         self.app.close()
         mock_close.assert_called_once()
