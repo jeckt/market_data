@@ -33,7 +33,7 @@ class DataAdapterSourceTests(unittest.TestCase):
 class DataAdapterTests(unittest.TestCase):
 
     def setUp(self):
-        self.da = data_adapter.get_adapter(DataAdapterSource.JSON)
+        self.da = data_adapter.get_adapter(DataAdapterSource.SQLITE3)
 
     def tearDown(self):
         # NOTE(steve): I think it is acceptable to suppress

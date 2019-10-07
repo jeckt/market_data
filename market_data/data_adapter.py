@@ -43,7 +43,6 @@ class DataAdapter(metaclass=ABCMeta):
     def connect(cls, conn_string):
         pass
 
-    @classmethod
     @abstractmethod
     def close(self):
         pass
