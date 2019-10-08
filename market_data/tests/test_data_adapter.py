@@ -11,11 +11,8 @@ import datetime
 
 from parameterized import parameterized_class
 
+import market_data
 import market_data.data_adapter as data_adapter
-from market_data.data_adapter import DataAdapter, DataAdapterSource
-from market_data.data_adapter import DatabaseExistsError, DatabaseNotFoundError
-from market_data.json_data_adapter import JsonDataAdapter
-from market_data.sqlite3_data_adapter import Sqlite3DataAdapter
 from market_data.data import EquityData, InvalidTickerError, InvalidDateError
 import market_data.tests.utils as test_utils
 
@@ -26,16 +23,16 @@ class DataAdapterSourceTests(unittest.TestCase):
             data_adapter.get_adapter('invalid_source')
 
     def test_get_json_data_adapter_source(self):
-        da = data_adapter.get_adapter(DataAdapterSource.JSON)
-        self.assertEqual(da, JsonDataAdapter)
+        da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
+        self.assertEqual(da, market_data.json_data_adapter.JsonDataAdapter)
 
     def test_get_sqlite3_data_adapter_source(self):
-        da = data_adapter.get_adapter(DataAdapterSource.SQLITE3)
-        self.assertTrue(da, Sqlite3DataAdapter)
+        da = data_adapter.get_adapter(data_adapter.DataAdapterSource.SQLITE3)
+        self.assertTrue(da, market_data.sqlite3_data_adapter.Sqlite3DataAdapter)
 
 @parameterized_class(('data_adapater_source', ),[
-    [DataAdapterSource.JSON, ],
-    [DataAdapterSource.SQLITE3, ]
+    [data_adapter.DataAdapterSource.JSON, ],
+    [data_adapter.DataAdapterSource.SQLITE3, ]
 ])
 class DataAdapterTests(unittest.TestCase):
 
@@ -65,12 +62,12 @@ class DataAdapterTests(unittest.TestCase):
 
     def test_create_existing_test_database_raises_error(self):
         self.da.create_test_database()
-        with self.assertRaises(DatabaseExistsError):
+        with self.assertRaises(data_adapter.DatabaseExistsError):
             self.da.create_test_database()
 
     def test_delete_non_existing_test_database_raises_error(self):
         self.assertFalse(os.path.isfile(self.da.test_database))
-        with self.assertRaises(DatabaseNotFoundError):
+        with self.assertRaises(data_adapter.DatabaseNotFoundError):
             self.da.delete_test_database()
 
     def test_connect_to_test_database(self):
@@ -81,13 +78,13 @@ class DataAdapterTests(unittest.TestCase):
 
     def test_connect_to_non_existing_database_throws_error(self):
         self.assertFalse(os.path.isfile('newdb.json'))
-        with self.assertRaises(DatabaseNotFoundError):
+        with self.assertRaises(data_adapter.DatabaseNotFoundError):
             self.da.connect('newdb.json')
 
 class DataAdapterSecuritiesTests(unittest.TestCase):
 
     def setUp(self):
-        self.da = data_adapter.get_adapter(DataAdapterSource.JSON)
+        self.da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
         self.da.create_test_database()
         self.database = self.da.connect(self.da.test_database)
 
