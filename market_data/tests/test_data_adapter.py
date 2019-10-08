@@ -8,6 +8,9 @@ sys.path.insert(0, os.path.split(os.path.split(file_path)[0])[0])
 
 import unittest
 import datetime
+
+from parameterized import parameterized_class
+
 import market_data.data_adapter as data_adapter
 from market_data.data_adapter import DataAdapter, DataAdapterSource
 from market_data.data_adapter import DatabaseExistsError, DatabaseNotFoundError
@@ -30,10 +33,14 @@ class DataAdapterSourceTests(unittest.TestCase):
         da = data_adapter.get_adapter(DataAdapterSource.SQLITE3)
         self.assertTrue(da, Sqlite3DataAdapter)
 
+@parameterized_class(('data_adapater_source', ),[
+    [DataAdapterSource.JSON, ],
+    [DataAdapterSource.SQLITE3, ]
+])
 class DataAdapterTests(unittest.TestCase):
 
     def setUp(self):
-        self.da = data_adapter.get_adapter(DataAdapterSource.SQLITE3)
+        self.da = data_adapter.get_adapter(self.data_adapater_source)
 
     def tearDown(self):
         # NOTE(steve): I think it is acceptable to suppress
