@@ -56,10 +56,14 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
             cursor = self._conn.cursor()
             cursor.execute('SELECT name FROM securities')
             rows = cursor.fetchall()
-        return rows
+        return [row[0] for row in rows]
 
     def insert_securities(self, securities_to_add):
-        pass
+        sql = 'INSERT INTO securities(name) VALUES(?)'
+        with self._conn:
+            cursor = self._conn.cursor()
+            for security in securities_to_add:
+                cursor.execute(sql, (security,))
 
     def update_market_data(self, security, equity_data):
         pass

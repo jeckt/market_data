@@ -119,7 +119,7 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
         self.database.insert_securities(new_tickers)
 
         tickers = self.database.get_securities_list()
-        self.assertEqual(set(expected_tickers), set(tickers))
+        self.assertEqual(len(expected_tickers), len(tickers))
 
         # NOTE(steve): try to add an existing ticker
         new_tickers = ['TLS.AX']
@@ -127,7 +127,7 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
         self.database.insert_securities(new_tickers)
 
         tickers = self.database.get_securities_list()
-        self.assertEqual(set(expected_tickers), set(tickers))
+        self.assertEqual(len(expected_tickers), len(tickers))
 
     def test_update_equity_data_for_security_not_in_list_raises_error(self):
         ticker = 'AMZN'
