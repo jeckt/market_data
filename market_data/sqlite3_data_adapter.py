@@ -23,6 +23,13 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
 
         try:
             conn = sqlite3.connect(cls.test_database)
+            with conn:
+                security_list_sql = """CREATE TABLE securities(
+                                        id integer PRIMARY KEY AUTOINCREMENT,
+                                        name text NOT NULL
+                                        );"""
+                cursor = conn.cursor()
+                cursor.execute(security_list_sql)
         except sqlite3.Error as e:
             print(e)
         finally:
@@ -38,12 +45,18 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
 
     def __init__(self, conn_string):
         self.conn_string = conn_string
+        self._conn = sqlite3.connect(self.conn_string)
 
     def close(self):
-        pass
+        if self._conn is not None:
+            self._conn.close()
 
     def get_securities_list(self):
-        pass
+        with self._conn:
+            cursor = self._conn.cursor()
+            cursor.execute('SELECT name FROM securities')
+            rows = cursor.fetchall()
+        return rows
 
     def insert_securities(self, securities_to_add):
         pass

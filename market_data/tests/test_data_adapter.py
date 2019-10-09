@@ -84,7 +84,8 @@ class DataAdapterTests(unittest.TestCase):
 class DataAdapterSecuritiesTests(unittest.TestCase):
 
     def setUp(self):
-        self.da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
+        self.da = data_adapter.get_adapter(
+            data_adapter.DataAdapterSource.SQLITE3)
         self.da.create_test_database()
         self.database = self.da.connect(self.da.test_database)
 
