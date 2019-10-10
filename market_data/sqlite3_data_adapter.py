@@ -1,7 +1,17 @@
 import os
+from decimal import Decimal
 import sqlite3
 import market_data.data_adapter as data_adapter
 from market_data.data import EquityData, InvalidTickerError, InvalidDateError
+
+def adapt_decimal(d):
+    return str(d)
+
+def convert_decimal(d):
+    return Decimal(d)
+
+sqlite3.register_adapter(Decimal, adapt_decimal)
+sqlite3.register_converter("decimal", convert_decimal)
 
 class Sqlite3DataAdapter(data_adapter.DataAdapter):
     test_database = 'test.db'
@@ -23,7 +33,8 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
             raise data_adapter.DatabaseExistsError(database)
 
         try:
-            conn = sqlite3.connect(cls.test_database)
+            conn = sqlite3.connect(cls.test_database,
+                                   detect_types=sqlite3.PARSE_DECLTYPES)
             with conn:
                 security_list_sql = """CREATE TABLE securities(
                                         id integer PRIMARY KEY AUTOINCREMENT,
@@ -37,11 +48,11 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
                                         id integer PRIMARY KEY AUTOINCREMENT,
                                         ticker_id integer NOT NULL,
                                         date text NOT NULL,
-                                        open real NOT NULL,
-                                        high real NOT NULL,
-                                        low real NOT NULL,
-                                        close real NOT NULL,
-                                        adj_close real NOT NULL,
+                                        open decimal NOT NULL,
+                                        high decimal NOT NULL,
+                                        low decimal NOT NULL,
+                                        close decimal NOT NULL,
+                                        adj_close decimal NOT NULL,
                                         volume integer NOT NULL,
                                         UNIQUE(ticker_id, date)
                                         FOREIGN KEY(ticker_id)
@@ -64,13 +75,23 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
 
     def __init__(self, conn_string):
         self.conn_string = conn_string
-        self._conn = sqlite3.connect(self.conn_string)
+        self._conn = sqlite3.connect(self.conn_string,
+                                    detect_types=sqlite3.PARSE_DECLTYPES)
 
     # TODO(steve): should this be a decorator???
     def _check_is_valid_security(self, security):
         tickers = self.get_securities_list()
         if security not in tickers:
             raise InvalidTickerError(security)
+
+    def _get_security_id(self, security):
+        with self._conn:
+            sql = f"SELECT id FROM securities WHERE ticker = '{security}'"
+            cursor = self._conn.cursor()
+            cursor.execute(sql)
+            ticker_id = cursor.fetchone()[0]
+
+        return ticker_id
 
     def close(self):
         if self._conn is not None:
@@ -93,8 +114,21 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
                 except sqlite3.IntegrityError:
                     pass
 
+    # TODO(steve): unit test for duplicate equity data update
     def update_market_data(self, security, equity_data):
         self._check_is_valid_security(security)
+
+        ticker_id = self._get_security_id(security)
+        date = equity_data[0].strftime('%Y-%m-%d')
+        data = equity_data[1]
+
+        with self._conn:
+            sql = """INSERT INTO equity_prices(ticker_id, date, open,
+                        high, low, close, adj_close, volume)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
+            cursor.execute(sql, (ticker_id, date, data.open, data.high,
+                                 data.low, data.close, data.adj_close,
+                                 data.volume))
 
     def get_equity_data(self, security, dt):
         self._check_is_valid_security(security)
