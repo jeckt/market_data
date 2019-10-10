@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import market_data.data_adapter as data_adapter
+from market_data.data import EquityData, InvalidTickerError, InvalidDateError
 
 class Sqlite3DataAdapter(data_adapter.DataAdapter):
     test_database = 'test.db'
@@ -65,6 +66,12 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
         self.conn_string = conn_string
         self._conn = sqlite3.connect(self.conn_string)
 
+    # TODO(steve): should this be a decorator???
+    def _check_is_valid_security(self, security):
+        tickers = self.get_securities_list()
+        if security not in tickers:
+            raise InvalidTickerError(security)
+
     def close(self):
         if self._conn is not None:
             self._conn.close()
@@ -87,10 +94,10 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
                     pass
 
     def update_market_data(self, security, equity_data):
-        pass
+        self._check_is_valid_security(security)
 
     def get_equity_data(self, security, dt):
-        pass
+        self._check_is_valid_security(security)
 
     def get_equity_data_series(self, security):
-        pass
+        self._check_is_valid_security(security)
