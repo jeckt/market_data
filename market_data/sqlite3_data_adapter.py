@@ -26,10 +26,28 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
             with conn:
                 security_list_sql = """CREATE TABLE securities(
                                         id integer PRIMARY KEY AUTOINCREMENT,
-                                        name text NOT NULL
+                                        ticker text NOT NULL,
+                                        UNIQUE(ticker)
                                         );"""
                 cursor = conn.cursor()
                 cursor.execute(security_list_sql)
+
+                equity_data_sql = """CREATE TABLE equity_prices(
+                                        id integer PRIMARY KEY AUTOINCREMENT,
+                                        ticker_id integer NOT NULL,
+                                        date text NOT NULL,
+                                        open real NOT NULL,
+                                        high real NOT NULL,
+                                        low real NOT NULL,
+                                        close real NOT NULL,
+                                        adj_close real NOT NULL,
+                                        volume integer NOT NULL,
+                                        UNIQUE(ticker_id, date)
+                                        FOREIGN KEY(ticker_id)
+                                        REFERENCES securities(id)
+                                        );"""
+                cursor.execute(equity_data_sql)
+
         except sqlite3.Error as e:
             print(e)
         finally:
@@ -54,16 +72,19 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
     def get_securities_list(self):
         with self._conn:
             cursor = self._conn.cursor()
-            cursor.execute('SELECT name FROM securities')
+            cursor.execute('SELECT ticker FROM securities')
             rows = cursor.fetchall()
         return [row[0] for row in rows]
 
     def insert_securities(self, securities_to_add):
-        sql = 'INSERT INTO securities(name) VALUES(?)'
+        sql = 'INSERT INTO securities(ticker) VALUES(?)'
         with self._conn:
             cursor = self._conn.cursor()
             for security in securities_to_add:
-                cursor.execute(sql, (security,))
+                try:
+                    cursor.execute(sql, (security,))
+                except sqlite3.IntegrityError:
+                    pass
 
     def update_market_data(self, security, equity_data):
         pass
