@@ -5,14 +5,14 @@ import sqlite3
 import market_data.data_adapter as data_adapter
 from market_data.data import EquityData, InvalidTickerError, InvalidDateError
 
-def adapt_decimal(d):
+def _adapt_decimal(d):
     return str(d)
 
-def convert_decimal(d):
+def _convert_decimal(d):
     return Decimal(d.decode('utf-8'))
 
-sqlite3.register_adapter(Decimal, adapt_decimal)
-sqlite3.register_converter("decimal", convert_decimal)
+sqlite3.register_adapter(Decimal, _adapt_decimal)
+sqlite3.register_converter("decimal", _convert_decimal)
 
 class Sqlite3DataAdapter(data_adapter.DataAdapter):
     test_database = 'test.db'
