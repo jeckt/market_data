@@ -126,12 +126,29 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
             sql = """INSERT INTO equity_prices(ticker_id, date, open,
                         high, low, close, adj_close, volume)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
+            cursor = self._conn.cursor()
             cursor.execute(sql, (ticker_id, date, data.open, data.high,
                                  data.low, data.close, data.adj_close,
                                  data.volume))
 
     def get_equity_data(self, security, dt):
         self._check_is_valid_security(security)
+
+        ticker_id = self._get_security_id(security)
+        date_string = dt.strftime('%Y-%m-%d')
+
+        with self._conn:
+            sql = """SELECT open, high, low, close, adj_close, volume
+                        FROM equity_prices WHERE (ticker_id = {0} and
+                        date = {1})"""
+            sql = sql.format(ticker_id, date_string)
+            cursor = self._conn.cursor()
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+            if len(rows) == 0:
+                raise InvalidDateError(dt)
+            else:
+                pass
 
     def get_equity_data_series(self, security):
         self._check_is_valid_security(security)
