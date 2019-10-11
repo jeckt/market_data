@@ -8,6 +8,10 @@ from market_data.data import EquityData, InvalidTickerError, InvalidDateError
 sqlite3.register_adapter(Decimal, lambda d: str(d))
 sqlite3.register_converter("decimal", lambda d: Decimal(d.decode('utf-8')))
 
+sqlite3.register_adapter(datetime.datetime, lambda dt: dt.strftime('%Y-%m-%d'))
+sqlite3.register_converter("date",
+        lambda dt: datetime.datetime.strptime(dt.decode('utf-8'), '%Y-%m-%d'))
+
 class Sqlite3DataAdapter(data_adapter.DataAdapter):
     test_database = 'test.db'
 
@@ -42,7 +46,7 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
                 equity_data_sql = """CREATE TABLE equity_prices(
                                         id integer PRIMARY KEY AUTOINCREMENT,
                                         ticker_id integer NOT NULL,
-                                        date text NOT NULL,
+                                        date date NOT NULL,
                                         open decimal NOT NULL,
                                         high decimal NOT NULL,
                                         low decimal NOT NULL,
@@ -82,9 +86,9 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
 
     def _get_security_id(self, security):
         with self._conn:
-            sql = f"SELECT id FROM securities WHERE ticker = '{security}'"
+            sql = "SELECT id FROM securities WHERE ticker = ?"
             cursor = self._conn.cursor()
-            cursor.execute(sql)
+            cursor.execute(sql, (security,))
             ticker_id = cursor.fetchone()[0]
 
         return ticker_id
@@ -115,8 +119,7 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
         self._check_is_valid_security(security)
 
         ticker_id = self._get_security_id(security)
-        date = equity_data[0].strftime('%Y-%m-%d')
-        data = equity_data[1]
+        date, data = equity_data[0], equity_data[1]
 
         with self._conn:
             sql = """INSERT INTO equity_prices(ticker_id, date, open,
@@ -131,15 +134,13 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
         self._check_is_valid_security(security)
 
         ticker_id = self._get_security_id(security)
-        date_string = dt.strftime('%Y-%m-%d')
 
         with self._conn:
             sql = """SELECT open, high, low, close, adj_close, volume
-                        FROM equity_prices WHERE (ticker_id = {0} and
-                        date = '{1}')"""
-            sql = sql.format(ticker_id, date_string)
+                        FROM equity_prices WHERE (ticker_id = ? and
+                        date = ?)"""
             cursor = self._conn.cursor()
-            cursor.execute(sql)
+            cursor.execute(sql, (ticker_id, dt))
             rows = cursor.fetchall()
             if len(rows) == 0:
                 raise InvalidDateError(dt)
@@ -156,14 +157,12 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
 
         with self._conn:
             sql = """SELECT date, open, high, low, close, adj_close, volume
-                        FROM equity_prices WHERE (ticker_id = {0})"""
-            sql = sql.format(ticker_id)
+                        FROM equity_prices WHERE (ticker_id = ?)"""
 
             cursor = self._conn.cursor()
-            cursor.execute(sql)
+            cursor.execute(sql, (ticker_id,))
             rows = cursor.fetchall()
 
-            data = [(datetime.datetime.strptime(row[0], '%Y-%m-%d'),
-                     EquityData(*row[1:])) for row in rows]
+            data = [(row[0], EquityData(*row[1:])) for row in rows]
 
             return sorted(data, reverse=True)
