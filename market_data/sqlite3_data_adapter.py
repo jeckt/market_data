@@ -8,7 +8,7 @@ def adapt_decimal(d):
     return str(d)
 
 def convert_decimal(d):
-    return Decimal(d)
+    return Decimal(d.decode('utf-8'))
 
 sqlite3.register_adapter(Decimal, adapt_decimal)
 sqlite3.register_converter("decimal", convert_decimal)
@@ -140,15 +140,16 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
         with self._conn:
             sql = """SELECT open, high, low, close, adj_close, volume
                         FROM equity_prices WHERE (ticker_id = {0} and
-                        date = {1})"""
+                        date = '{1}')"""
             sql = sql.format(ticker_id, date_string)
             cursor = self._conn.cursor()
             cursor.execute(sql)
             rows = cursor.fetchall()
             if len(rows) == 0:
                 raise InvalidDateError(dt)
-            else:
-                pass
+            elif len(rows) == 1:
+                data = EquityData(*rows[0])
+                return data
 
     def get_equity_data_series(self, security):
         self._check_is_valid_security(security)
