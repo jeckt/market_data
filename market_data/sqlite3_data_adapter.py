@@ -1,4 +1,5 @@
 import os
+import datetime
 from decimal import Decimal
 import sqlite3
 import market_data.data_adapter as data_adapter
@@ -77,6 +78,7 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
         self.conn_string = conn_string
         self._conn = sqlite3.connect(self.conn_string,
                                     detect_types=sqlite3.PARSE_DECLTYPES)
+        self._conn.execute('PRAGMA foreign_keys = ON')
 
     # TODO(steve): should this be a decorator???
     def _check_is_valid_security(self, security):
@@ -151,5 +153,23 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
                 data = EquityData(*rows[0])
                 return data
 
+    # TODO(steve): where is the raise no data error test???
+    # TODO(steve): create a custom date converter like decimal???
     def get_equity_data_series(self, security):
         self._check_is_valid_security(security)
+
+        ticker_id = self._get_security_id(security)
+
+        with self._conn:
+            sql = """SELECT date, open, high, low, close, adj_close, volume
+                        FROM equity_prices WHERE (ticker_id = {0})"""
+            sql = sql.format(ticker_id)
+
+            cursor = self._conn.cursor()
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+
+            data = [(datetime.datetime.strptime(row[0], '%Y-%m-%d'),
+                     EquityData(*row[1:])) for row in rows]
+
+            return sorted(data, reverse=True)

@@ -81,11 +81,14 @@ class DataAdapterTests(unittest.TestCase):
         with self.assertRaises(data_adapter.DatabaseNotFoundError):
             self.da.connect('newdb.json')
 
+@parameterized_class(('data_adapater_source', ),[
+    [data_adapter.DataAdapterSource.JSON, ],
+    [data_adapter.DataAdapterSource.SQLITE3, ]
+])
 class DataAdapterSecuritiesTests(unittest.TestCase):
 
     def setUp(self):
-        self.da = data_adapter.get_adapter(
-            data_adapter.DataAdapterSource.SQLITE3)
+        self.da = data_adapter.get_adapter(self.data_adapater_source)
         self.da.create_test_database()
         self.database = self.da.connect(self.da.test_database)
 
