@@ -164,6 +164,23 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
         actual_data = self.database.get_equity_data(ticker, dt)
         self.assertEqual(expected_data, actual_data)
 
+    def test_update_duplicate_equity_data_overrides_existing(self):
+        ticker, dt, expected_data = test_utils.get_expected_equity_data()
+        self.database.insert_securities([ticker])
+
+        self.database.update_market_data(ticker, (dt, expected_data))
+
+        actual_data = self.database.get_equity_data(ticker, dt)
+        self.assertEqual(expected_data, actual_data)
+
+        # NOTE(steve): update expected_data so that we can check
+        # that the update market data method updates existing entry
+        expected_data.volume = 0
+        self.database.update_market_data(ticker, (dt, expected_data))
+
+        actual_data = self.database.get_equity_data(ticker, dt)
+        self.assertEqual(expected_data, actual_data)
+
     # NOTE(steve): multiple dates and securities are not duplications
     # of the market_data.py unit tests as these do not make calls
     # to get the data but assumes the data is provided in the correct form

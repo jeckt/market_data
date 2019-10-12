@@ -114,13 +114,34 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
                 except sqlite3.IntegrityError:
                     pass
 
-    # TODO(steve): unit test for duplicate equity data update
     def update_market_data(self, security, equity_data):
         self._check_is_valid_security(security)
 
         ticker_id = self._get_security_id(security)
         date, data = equity_data[0], equity_data[1]
 
+        rows = self._get_equity_data(ticker_id, date)
+        if len(rows) == 0:
+            self._insert_equity_data(ticker_id, date, data)
+        else:
+            self._update_equity_data(ticker_id, date, data)
+
+    def _update_equity_data(self, ticker_id, date, data):
+        with self._conn:
+            sql = """UPDATE equity_prices
+                        SET open = ?,
+                            high = ?,
+                            low = ?,
+                            close = ?,
+                            adj_close = ?,
+                            volume = ?
+                        WHERE (ticker_id = ? AND date = ?)"""
+            cursor = self._conn.cursor()
+            cursor.execute(sql, (data.open, data.high, data.low,
+                                 data.close, data.adj_close, data.volume,
+                                 ticker_id, date))
+
+    def _insert_equity_data(self, ticker_id, date, data):
         with self._conn:
             sql = """INSERT INTO equity_prices(ticker_id, date, open,
                         high, low, close, adj_close, volume)
@@ -130,23 +151,29 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
                                  data.low, data.close, data.adj_close,
                                  data.volume))
 
-    def get_equity_data(self, security, dt):
-        self._check_is_valid_security(security)
-
-        ticker_id = self._get_security_id(security)
-
+    def _get_equity_data(self, ticker_id, date):
         with self._conn:
             sql = """SELECT open, high, low, close, adj_close, volume
                         FROM equity_prices WHERE (ticker_id = ? and
                         date = ?)"""
             cursor = self._conn.cursor()
-            cursor.execute(sql, (ticker_id, dt))
+            cursor.execute(sql, (ticker_id, date))
+
             rows = cursor.fetchall()
-            if len(rows) == 0:
-                raise InvalidDateError(dt)
-            elif len(rows) == 1:
-                data = EquityData(*rows[0])
-                return data
+
+        return rows
+
+    def get_equity_data(self, security, date):
+        self._check_is_valid_security(security)
+
+        ticker_id = self._get_security_id(security)
+
+        rows = self._get_equity_data(ticker_id, date)
+        if len(rows) == 0:
+            raise InvalidDateError(date)
+        elif len(rows) == 1:
+            data = EquityData(*rows[0])
+            return data
 
     def get_equity_data_series(self, security):
         self._check_is_valid_security(security)
