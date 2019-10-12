@@ -200,6 +200,13 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
         with self.assertRaises(InvalidTickerError):
             self.database.get_equity_data_series('AMZN')
 
+    def test_equity_data_series_returns_empty_set(self):
+        self.database.insert_securities(['AMZN'])
+
+        data = self.database.get_equity_data_series('AMZN')
+        self.assertEqual(len(data), 0)
+        self.assertIsInstance(data, list)
+
     def test_get_equity_data_for_multiple_securities(self):
         self.database.insert_securities(['AMZN', 'GOOG'])
         dt = datetime.datetime(2019, 8, 27)

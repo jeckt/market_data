@@ -148,8 +148,6 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
                 data = EquityData(*rows[0])
                 return data
 
-    # TODO(steve): where is the raise no data error test???
-    # TODO(steve): create a custom date converter like decimal???
     def get_equity_data_series(self, security):
         self._check_is_valid_security(security)
 
