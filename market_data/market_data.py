@@ -13,12 +13,14 @@ class MarketData:
     # this is where we will throw dependency errors as well
     # TODO(steve): the DataAdapter should be passed into the 
     # MarketData class not a connection string to connect to
-    # the database
-    def run(self, database=None):
+    # the database???
+    # NOTE(steve): database param is a named tuple
+    # Database = namedtuple('Database', ['conn_string', 'source'])
+    def run(self, database):
         self.init = True
         self._scraper = Scraper('yahoo')
-        da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
-        self._database = da.connect(database)
+        da = data_adapter.get_adapter(database.source)
+        self._database = da.connect(database.conn_string)
 
     # NOTE(steve): this method will be used to clean up
     # all the dependency e.g. closing of the database

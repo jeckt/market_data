@@ -7,9 +7,9 @@ file_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
 sys.path.insert(0, os.path.split(os.path.split(file_path)[0])[0])
 
 import unittest
-from unittest import skip
 from unittest.mock import patch
 import datetime
+from collections import namedtuple
 import json
 
 from market_data.market_data import MarketData
@@ -19,10 +19,15 @@ from market_data.data import InvalidTickerError, InvalidDateError, NoDataError
 import market_data.data_adapter as data_adapter
 import market_data.tests.utils as test_utils
 
+Database = namedtuple('Database', ['conn_string', 'source'])
+
 def common_setup(obj):
     obj.da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
-    obj.database = obj.da.test_database
     obj.da.create_test_database()
+
+    obj.database = Database(obj.da.test_database,
+                            data_adapter.DataAdapterSource.JSON)
+
     obj.app = MarketData()
     obj.app.run(database=obj.database)
 
@@ -95,7 +100,8 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
 
     def test_raise_database_not_found_error(self):
         with self.assertRaises(data_adapter.DatabaseNotFoundError):
-            self.app.run(database='db.json')
+            d = Database('db.json', data_adapter.DataAdapterSource.JSON)
+            self.app.run(database=d)
 
     #TODO(steve): how does patch work with abstract classes?
     @patch('market_data.json_data_adapter.JsonDataAdapter.close', autospec=True)
