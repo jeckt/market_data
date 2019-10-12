@@ -1,3 +1,4 @@
+from collections import namedtuple
 import json
 from market_data.scraper import Scraper
 from market_data.data import InvalidTickerError, InvalidDateError, NoDataError
@@ -6,7 +7,9 @@ import market_data.data_adapter as data_adapter
 
 class MarketData:
 
+    Database = namedtuple('Database', ['conn_string', 'source'])
     init = False
+
 
     # NOTE(steve): this method will be used to initialise all 
     # the dependencies before the user can use the application

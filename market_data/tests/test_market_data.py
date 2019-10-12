@@ -19,14 +19,12 @@ from market_data.data import InvalidTickerError, InvalidDateError, NoDataError
 import market_data.data_adapter as data_adapter
 import market_data.tests.utils as test_utils
 
-Database = namedtuple('Database', ['conn_string', 'source'])
-
 def common_setup(obj):
     obj.da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
     obj.da.create_test_database()
 
-    obj.database = Database(obj.da.test_database,
-                            data_adapter.DataAdapterSource.JSON)
+    obj.database = MarketData.Database(obj.da.test_database,
+                                       data_adapter.DataAdapterSource.JSON)
 
     obj.app = MarketData()
     obj.app.run(database=obj.database)
@@ -100,7 +98,8 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
 
     def test_raise_database_not_found_error(self):
         with self.assertRaises(data_adapter.DatabaseNotFoundError):
-            d = Database('db.json', data_adapter.DataAdapterSource.JSON)
+            d = MarketData.Database('db.json',
+                                    data_adapter.DataAdapterSource.JSON)
             self.app.run(database=d)
 
     #TODO(steve): how does patch work with abstract classes?
