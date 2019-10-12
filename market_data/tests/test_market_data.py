@@ -11,6 +11,8 @@ from unittest.mock import patch
 import datetime
 import json
 
+from parameterized import parameterized_class
+
 from market_data.market_data import MarketData
 from market_data.market_data import NotInitialisedError
 from market_data.data import EquityData
@@ -19,11 +21,11 @@ import market_data.data_adapter as data_adapter
 import market_data.tests.utils as test_utils
 
 def common_setup(obj):
-    obj.da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
+    obj.da = data_adapter.get_adapter(obj.data_adapter_source)
     obj.da.create_test_database()
 
     obj.database = MarketData.Database(obj.da.test_database,
-                                       data_adapter.DataAdapterSource.JSON)
+                                       obj.data_adapter_source)
 
     obj.app = MarketData()
     obj.app.run(database=obj.database)
@@ -35,6 +37,10 @@ def common_teardown(obj):
     except:
         pass
 
+@parameterized_class(('data_adapter_source', ),[
+    [data_adapter.DataAdapterSource.JSON, ],
+    [data_adapter.DataAdapterSource.SQLITE3, ]
+])
 class MarketDataTests(unittest.TestCase):
 
     def setUp(self):
@@ -73,6 +79,10 @@ class MarketDataTests(unittest.TestCase):
         with self.assertRaises(NotInitialisedError):
             self.app.add_security('GOOG')
 
+@parameterized_class(('data_adapter_source', ),[
+    [data_adapter.DataAdapterSource.JSON, ],
+    [data_adapter.DataAdapterSource.SQLITE3, ]
+])
 class MarketDataPersistentStorageTests(unittest.TestCase):
 
     def setUp(self):
@@ -101,11 +111,19 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
                                     data_adapter.DataAdapterSource.JSON)
             self.app.run(database=d)
 
-    #TODO(steve): how does patch work with abstract classes?
-    @patch('market_data.json_data_adapter.JsonDataAdapter.close', autospec=True)
-    def test_data_adapter_closed_on_app_close(self, mock_close):
-        self.app.close()
-        mock_close.assert_called_once()
+    def test_data_adapter_closed_on_app_close(self):
+        method = 'market_data.'
+        source = self.data_adapter_source
+        if source == data_adapter.DataAdapterSource.JSON:
+            method += 'json_data_adapter.JsonDataAdapter.close'
+        elif source == data_adapter.DataAdapterSource.SQLITE3:
+            method += 'sqlite3_data_adapter.Sqlite3DataAdapter.close'
+        else:
+            raise InvalidDataAdapterSourceError(self.data_adapter_source)
+
+        with patch(method, autospec=True) as mock_close:
+            self.app.close()
+            mock_close.assert_called_once()
 
     def test_get_equity_data_on_app_reopen(self):
         ticker, dt, expected_data = test_utils.get_expected_equity_data()
@@ -126,6 +144,10 @@ class MarketDataPersistentStorageTests(unittest.TestCase):
         self.assertEqual(expected_data, actual_data)
         new_app.close()
 
+@parameterized_class(('data_adapter_source', ),[
+    [data_adapter.DataAdapterSource.JSON, ],
+    [data_adapter.DataAdapterSource.SQLITE3, ]
+])
 class EquityDataTests(unittest.TestCase):
 
     def setUp(self):
