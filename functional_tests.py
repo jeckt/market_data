@@ -16,7 +16,8 @@ class FunctionalTests(unittest.TestCase):
     def setUp(self):
         self.test_data = test_utils.load_test_data()
         self.da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
-        self.database = self.da.test_database
+        self.database = MarketData.Database(self.da.test_database,
+                                        data_adapter.DataAdapterSource.JSON)
         self.da.create_test_database()
 
     def tearDown(self):
