@@ -120,30 +120,8 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
         ticker_id = self._get_security_id(security)
         date, data = equity_data[0], equity_data[1]
 
-        rows = self._get_equity_data(ticker_id, date)
-        if len(rows) == 0:
-            self._insert_equity_data(ticker_id, date, data)
-        else:
-            self._update_equity_data(ticker_id, date, data)
-
-    def _update_equity_data(self, ticker_id, date, data):
         with self._conn:
-            sql = """UPDATE equity_prices
-                        SET open = ?,
-                            high = ?,
-                            low = ?,
-                            close = ?,
-                            adj_close = ?,
-                            volume = ?
-                        WHERE (ticker_id = ? AND date = ?)"""
-            cursor = self._conn.cursor()
-            cursor.execute(sql, (data.open, data.high, data.low,
-                                 data.close, data.adj_close, data.volume,
-                                 ticker_id, date))
-
-    def _insert_equity_data(self, ticker_id, date, data):
-        with self._conn:
-            sql = """INSERT INTO equity_prices(ticker_id, date, open,
+            sql = """REPLACE INTO equity_prices(ticker_id, date, open,
                         high, low, close, adj_close, volume)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
             cursor = self._conn.cursor()
