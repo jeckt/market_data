@@ -19,18 +19,20 @@ class MenuOptions(IntEnum):
 def main():
     if len(sys.argv) > 1:
         conn_string = sys.argv[1]
+        database = MarketData.Database(conn_string,
+                                       data_adapter.DataAdapterSource.JSON)
         try:
-            app.run(conn_string)
+            app.run(database=database)
 
-            print(Messages.load_existing_database(conn_string))
+            print(Messages.load_existing_database(database.conn_string))
             print(Messages.main_menu())
 
         except data_adapter.DatabaseNotFoundError:
-            da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
-            da.create_database(conn_string)
-            app.run(conn_string)
+            da = data_adapter.get_adapter(database.source)
+            da.create_database(database.conn_string)
+            app.run(database=database)
 
-            print(Messages.new_database_created(conn_string))
+            print(Messages.new_database_created(database.conn_string))
             print(Messages.main_menu())
 
         # TODO(steve): probably better to use a running global parameter

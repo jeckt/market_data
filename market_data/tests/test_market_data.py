@@ -9,7 +9,6 @@ sys.path.insert(0, os.path.split(os.path.split(file_path)[0])[0])
 import unittest
 from unittest.mock import patch
 import datetime
-from collections import namedtuple
 import json
 
 from market_data.market_data import MarketData
