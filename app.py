@@ -7,7 +7,7 @@ from market_data.market_data import MarketData
 from market_data.data import InvalidTickerError, InvalidDateError, NoDataError
 import market_data.data_adapter as data_adapter
 
-DATA_ADAPTER_SOURCE = data_adapter.DataAdapterSource.JSON
+DATA_ADAPTER_SOURCE = data_adapter.DataAdapterSource.SQLITE3
 
 app = MarketData()
 

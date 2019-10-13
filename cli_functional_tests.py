@@ -5,6 +5,7 @@ import unittest
 from unittest.mock import patch
 import datetime
 
+from parameterized import parameterized_class
 from freezegun import freeze_time
 
 import app
@@ -12,13 +13,18 @@ from app import Messages as msg
 import market_data.data_adapter as data_adapter
 import market_data.tests.utils as test_utils
 
-# TODO(steve): we need to rethink how we expose the app messages,
-# options and methods to users (even in testing!!!)
+@parameterized_class(('data_adapter_source', ),[
+    [data_adapter.DataAdapterSource.JSON, ],
+    [data_adapter.DataAdapterSource.SQLITE3, ]
+])
 class CommandLineInterfaceTests(unittest.TestCase):
 
     def setUp(self):
-        self.da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
+        self.da = data_adapter.get_adapter(self.data_adapter_source)
         self.database = self.da.test_database
+
+        app.DATA_ADAPTER_SOURCE = self.data_adapter_source
+
         self.actual_output = []
         self.user_input = []
         def mock_input(s):
@@ -180,6 +186,8 @@ class CommandLineInterfaceTests(unittest.TestCase):
         # store financial market data for him. He decides to open it
         # NOTE(steve): simulates ./app.py call on command line
         expected_output.append(msg.no_database_specified())
+
+        sys.argv = ['./app.py']
         app.main()
 
         # Upon opening it, he is told that he has not specified
