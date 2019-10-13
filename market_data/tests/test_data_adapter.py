@@ -70,6 +70,20 @@ class DataAdapterTests(unittest.TestCase):
         with self.assertRaises(data_adapter.DatabaseNotFoundError):
             self.da.delete_test_database()
 
+    def test_create_new_database(self):
+        if self.data_adapter_source == data_adapter.DataAdapterSource.JSON:
+            db_file = 'jeckt.json'
+        else:
+            db_file = 'jeckt.db'
+
+        self.da.create_database(db_file)
+
+        self.assertTrue(os.path.isfile(db_file), self.data_adapter_source)
+        try:
+            os.remove(db_file)
+        except:
+            pass
+
     def test_connect_to_test_database(self):
         self.da.create_test_database()
         self.assertTrue(os.path.isfile(self.da.test_database))

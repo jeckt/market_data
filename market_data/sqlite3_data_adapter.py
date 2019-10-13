@@ -32,7 +32,7 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
             raise data_adapter.DatabaseExistsError(database)
 
         try:
-            conn = sqlite3.connect(cls.test_database,
+            conn = sqlite3.connect(database,
                                    detect_types=sqlite3.PARSE_DECLTYPES)
             with conn:
                 security_list_sql = """CREATE TABLE securities(
