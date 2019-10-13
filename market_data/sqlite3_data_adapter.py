@@ -2,13 +2,23 @@ import os
 import datetime
 from decimal import Decimal
 import sqlite3
+
+import freezegun
+
 import market_data.data_adapter as data_adapter
 from market_data.data import EquityData, InvalidTickerError, InvalidDateError
+
+def adapt_date(dt):
+    return dt.strftime('%Y-%m-%d')
 
 sqlite3.register_adapter(Decimal, lambda d: str(d))
 sqlite3.register_converter("decimal", lambda d: Decimal(d.decode('utf-8')))
 
-sqlite3.register_adapter(datetime.datetime, lambda dt: dt.strftime('%Y-%m-%d'))
+# NOTE(steve): freezegun has some pecularities where in certain situations
+# it does not use the datetime.datetime adapter to convert datetime objects
+# to string for the sqlite3 database so we explicit convert it
+sqlite3.register_adapter(freezegun.api.FakeDatetime, adapt_date)
+sqlite3.register_adapter(datetime.datetime, adapt_date)
 sqlite3.register_converter("date",
         lambda dt: datetime.datetime.strptime(dt.decode('utf-8'), '%Y-%m-%d'))
 

@@ -7,6 +7,8 @@ from market_data.market_data import MarketData
 from market_data.data import InvalidTickerError, InvalidDateError, NoDataError
 import market_data.data_adapter as data_adapter
 
+DATA_ADAPTER_SOURCE = data_adapter.DataAdapterSource.JSON
+
 app = MarketData()
 
 @unique
@@ -19,8 +21,7 @@ class MenuOptions(IntEnum):
 def main():
     if len(sys.argv) > 1:
         conn_string = sys.argv[1]
-        database = MarketData.Database(conn_string,
-                                       data_adapter.DataAdapterSource.JSON)
+        database = MarketData.Database(conn_string, DATA_ADAPTER_SOURCE)
         try:
             app.run(database=database)
 

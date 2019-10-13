@@ -10,9 +10,11 @@ import unittest
 from unittest.mock import patch
 import datetime
 
+from parameterized import parameterized_class
 from freezegun import freeze_time
 
 import app
+from market_data.market_data import MarketData
 import market_data.data_adapter as data_adapter
 from market_data.scraper import InvalidDateError, InvalidTickerError
 import market_data.tests.utils as test_utils
@@ -25,11 +27,17 @@ def check_output(actual_output, expected_output):
         assert actual == expected
     assert len(actual_output) == len(expected_output)
 
+@parameterized_class(('data_adapter_source', ),[
+    [data_adapter.DataAdapterSource.JSON, ],
+    [data_adapter.DataAdapterSource.SQLITE3, ]
+])
 class AppMainMenuTests(unittest.TestCase):
 
     def setUp(self):
-        self.da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
+        self.da = data_adapter.get_adapter(self.data_adapter_source)
         self.database = self.da.test_database
+
+        app.DATA_ADAPTER_SOURCE = self.data_adapter_source
 
         self.expected_output = []
         self.actual_output = []
@@ -119,10 +127,16 @@ class AppMainMenuTests(unittest.TestCase):
 
         check_output(self.actual_output, self.expected_output)
 
+@parameterized_class(('data_adapter_source', ),[
+    [data_adapter.DataAdapterSource.JSON, ],
+    [data_adapter.DataAdapterSource.SQLITE3, ]
+])
 class AppUpdateMarketDataTests(unittest.TestCase):
     def setUp(self):
-        self.da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
+        self.da = data_adapter.get_adapter(self.data_adapter_source)
         self.database = self.da.test_database
+
+        app.DATA_ADAPTER_SOURCE = self.data_adapter_source
 
         self.expected_output = []
         self.actual_output = []
@@ -346,10 +360,16 @@ class AppUpdateMarketDataTests(unittest.TestCase):
 
         check_output(self.actual_output, self.expected_output)
 
+@parameterized_class(('data_adapter_source', ),[
+    [data_adapter.DataAdapterSource.JSON, ],
+    [data_adapter.DataAdapterSource.SQLITE3, ]
+])
 class AppViewSecuritiesTests(unittest.TestCase):
     def setUp(self):
-        self.da = data_adapter.get_adapter(data_adapter.DataAdapterSource.JSON)
+        self.da = data_adapter.get_adapter(self.data_adapter_source)
         self.database = self.da.test_database
+
+        app.DATA_ADAPTER_SOURCE = self.data_adapter_source
 
         self.expected_output = []
         self.actual_output = []
@@ -464,10 +484,20 @@ class AppViewSecuritiesTests(unittest.TestCase):
 
         check_output(self.actual_output, self.expected_output)
 
+@parameterized_class(('data_adapter_source', ),[
+    [data_adapter.DataAdapterSource.JSON, ],
+    [data_adapter.DataAdapterSource.SQLITE3, ]
+])
 class AppDatabaseTests(unittest.TestCase):
 
     def setUp(self):
-        self.database = 'testdb.json'
+        app.DATA_ADAPTER_SOURCE = self.data_adapter_source
+
+        if self.data_adapter_source == data_adapter.DataAdapterSource.JSON:
+            self.database = 'testdb.json'
+        else:
+            self.database = 'test.db'
+
         self.actual_output = []
         self.expected_output = []
         app.print = lambda s: self.actual_output.append(s)
