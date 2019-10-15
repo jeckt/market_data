@@ -26,7 +26,6 @@ def main():
             app.run(database=database)
 
             print(Messages.load_existing_database(database.conn_string))
-            print(Messages.main_menu())
 
         except data_adapter.DatabaseNotFoundError:
             da = data_adapter.get_adapter(database.source)
@@ -34,88 +33,120 @@ def main():
             app.run(database=database)
 
             print(Messages.new_database_created(database.conn_string))
-            print(Messages.main_menu())
 
-        # TODO(steve): probably better to use a running global parameter
-        # to make it more readable
-        while process_user_input(): pass
+        running = True
+        while running:
+            print(Messages.main_menu())
+            running = process_user_input()
 
     else:
         print(Messages.no_database_specified())
 
 def process_user_input():
+    running = True
     try:
         user_input = int(input(Messages.option_input()))
 
         if user_input == MenuOptions.QUIT:
-            print(Messages.quit())
-            return False
+            running = MainMenu.quit()
 
         elif user_input == MenuOptions.VIEW_SECURITIES:
-            return_to_main_menu = False
-            while not return_to_main_menu:
-                tickers = app.get_securities_list()
-                print(Messages.view_securities(tickers))
-                try:
-                    view_input = int(input(Messages.option_input()))
-
-                    if view_input == 0:
-                        return_to_main_menu = True
-                    elif view_input > 0 and view_input <= len(tickers):
-                        ticker = tickers[view_input - 1]
-                        data = app.get_equity_data_series(ticker)
-                        if len(data) > 0:
-                            print(Messages.view_security_data(ticker, data))
-                            input(Messages.any_key_to_return())
-                        else:
-                            print(Messages.no_security_data(ticker))
-                    else:
-                        print(Messages.invalid_option())
-
-                except ValueError:
-                    print(Messages.invalid_option())
+            running = MainMenu.view_securities()
 
         elif user_input == MenuOptions.ADD_SECURITIES:
-            ticker = input(Messages.add_security_input())
-
-            app.add_security(ticker)
-
-            print(Messages.security_added(ticker))
+            running = MainMenu.add_securities()
 
         elif user_input == MenuOptions.UPDATE_MARKET_DATA:
-            today = datetime.datetime.today()
-            tickers = app.get_securities_list()
-            for ticker in tickers:
-                try:
-                    no_data = False
-                    dt, _ = app.get_latest_equity_data(ticker)
-                    dt += datetime.timedelta(days=1)
-                except InvalidTickerError:
-                    continue
-                except NoDataError:
-                    dt = today
-
-                # TODO(steve): expose errors in debug mode!
-                while dt <= today:
-                    if dt.weekday() < 5: # saturday = 5
-                        try:
-                            app.update_market_data(ticker, dt)
-                        except InvalidTickerError:
-                            pass
-                        except InvalidDateError:
-                            pass
-
-                    dt += datetime.timedelta(days=1)
-            print(Messages.market_data_updated())
+            running = MainMenu.update_market_data()
 
         else:
-            print(Messages.invalid_option())
+            running = MainMenu.invalid_option()
 
     except ValueError:
+        running = MainMenu.invalid_option()
+
+    return running
+
+
+class MainMenu:
+
+    @staticmethod
+    def quit():
+        print(Messages.quit())
+
+        return False
+
+    @staticmethod
+    def view_securities():
+        return_to_main_menu = False
+        while not return_to_main_menu:
+            tickers = app.get_securities_list()
+            print(Messages.view_securities(tickers))
+            try:
+                view_input = int(input(Messages.option_input()))
+
+                if view_input == 0:
+                    return_to_main_menu = True
+                elif view_input > 0 and view_input <= len(tickers):
+                    ticker = tickers[view_input - 1]
+                    data = app.get_equity_data_series(ticker)
+                    if len(data) > 0:
+                        print(Messages.view_security_data(ticker, data))
+                        input(Messages.any_key_to_return())
+                    else:
+                        print(Messages.no_security_data(ticker))
+                else:
+                    print(Messages.invalid_option())
+
+            except ValueError:
+                print(Messages.invalid_option())
+
+        return True
+
+    @staticmethod
+    def add_securities():
+        ticker = input(Messages.add_security_input())
+
+        app.add_security(ticker)
+
+        print(Messages.security_added(ticker))
+
+        return True
+
+    @staticmethod
+    def update_market_data():
+        today = datetime.datetime.today()
+        tickers = app.get_securities_list()
+        for ticker in tickers:
+            try:
+                no_data = False
+                dt, _ = app.get_latest_equity_data(ticker)
+                dt += datetime.timedelta(days=1)
+            except InvalidTickerError:
+                continue
+            except NoDataError:
+                dt = today
+
+            # TODO(steve): expose errors in debug mode!
+            while dt <= today:
+                if dt.weekday() < 5: # saturday = 5
+                    try:
+                        app.update_market_data(ticker, dt)
+                    except InvalidTickerError:
+                        pass
+                    except InvalidDateError:
+                        pass
+
+                dt += datetime.timedelta(days=1)
+        print(Messages.market_data_updated())
+
+        return True
+
+    @staticmethod
+    def invalid_option():
         print(Messages.invalid_option())
 
-    print(Messages.main_menu())
-    return True
+        return True
 
 class Messages:
 
