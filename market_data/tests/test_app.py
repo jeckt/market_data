@@ -27,6 +27,30 @@ def check_output(actual_output, expected_output):
         assert actual == expected
     assert len(actual_output) == len(expected_output)
 
+def common_setup(obj):
+    obj.da = data_adapter.get_adapter(obj.data_adapter_source)
+    obj.database = obj.da.test_database
+
+    app.DATA_ADAPTER_SOURCE = obj.data_adapter_source
+
+    obj.expected_output = []
+    obj.actual_output = []
+    obj.user_input = []
+
+    def mock_input(s):
+        obj.actual_output.append(s)
+        if len(obj.user_input) > 0:
+            return obj.user_input.pop(0)
+
+    app.input = mock_input
+    app.print = lambda s: obj.actual_output.append(s)
+
+def common_teardown(obj):
+    try:
+        obj.da.delete_test_database()
+    except:
+        pass
+
 @parameterized_class(('data_adapter_source', ),[
     [data_adapter.DataAdapterSource.JSON, ],
     [data_adapter.DataAdapterSource.SQLITE3, ]
@@ -34,22 +58,7 @@ def check_output(actual_output, expected_output):
 class AppMainMenuTests(unittest.TestCase):
 
     def setUp(self):
-        self.da = data_adapter.get_adapter(self.data_adapter_source)
-        self.database = self.da.test_database
-
-        app.DATA_ADAPTER_SOURCE = self.data_adapter_source
-
-        self.expected_output = []
-        self.actual_output = []
-        self.user_input = []
-
-        def mock_input(s):
-            self.actual_output.append(s)
-            if len(self.user_input) > 0:
-                return self.user_input.pop(0)
-
-        app.input = mock_input
-        app.print = lambda s: self.actual_output.append(s)
+        common_setup(self)
 
         msg = app.Messages.new_database_created(self.database)
         self.expected_output.append(msg)
@@ -57,10 +66,7 @@ class AppMainMenuTests(unittest.TestCase):
         self.expected_output.append(app.Messages.option_input())
 
     def tearDown(self):
-        try:
-            self.da.delete_test_database()
-        except:
-            pass
+        common_teardown(self)
 
     def test_quit_option_selected_exits_app(self):
         self.user_input.append(app.MenuOptions.QUIT)
@@ -133,22 +139,7 @@ class AppMainMenuTests(unittest.TestCase):
 ])
 class AppUpdateMarketDataTests(unittest.TestCase):
     def setUp(self):
-        self.da = data_adapter.get_adapter(self.data_adapter_source)
-        self.database = self.da.test_database
-
-        app.DATA_ADAPTER_SOURCE = self.data_adapter_source
-
-        self.expected_output = []
-        self.actual_output = []
-        self.user_input = []
-
-        def mock_input(s):
-            self.actual_output.append(s)
-            if len(self.user_input) > 0:
-                return self.user_input.pop(0)
-
-        app.input = mock_input
-        app.print = lambda s: self.actual_output.append(s)
+        common_setup(self)
 
         msg = app.Messages.new_database_created(self.database)
         self.expected_output.append(msg)
@@ -156,10 +147,7 @@ class AppUpdateMarketDataTests(unittest.TestCase):
         self.expected_output.append(app.Messages.option_input())
 
     def tearDown(self):
-        try:
-            self.da.delete_test_database()
-        except:
-            pass
+        common_teardown(self)
 
     @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
     def test_update_security_data_on_invalid_ticker(self, mock_scraper):
@@ -366,22 +354,7 @@ class AppUpdateMarketDataTests(unittest.TestCase):
 ])
 class AppViewSecuritiesTests(unittest.TestCase):
     def setUp(self):
-        self.da = data_adapter.get_adapter(self.data_adapter_source)
-        self.database = self.da.test_database
-
-        app.DATA_ADAPTER_SOURCE = self.data_adapter_source
-
-        self.expected_output = []
-        self.actual_output = []
-        self.user_input = []
-
-        def mock_input(s):
-            self.actual_output.append(s)
-            if len(self.user_input) > 0:
-                return self.user_input.pop(0)
-
-        app.input = mock_input
-        app.print = lambda s: self.actual_output.append(s)
+        common_setup(self)
 
         msg = app.Messages.new_database_created(self.database)
         self.expected_output.append(msg)
@@ -389,10 +362,7 @@ class AppViewSecuritiesTests(unittest.TestCase):
         self.expected_output.append(app.Messages.option_input())
 
     def tearDown(self):
-        try:
-            self.da.delete_test_database()
-        except:
-            pass
+        common_teardown(self)
 
     def test_no_security_data(self):
         self.user_input.append(app.MenuOptions.ADD_SECURITIES)
