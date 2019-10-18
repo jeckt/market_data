@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import sys
 import datetime
 from enum import IntEnum, unique
@@ -8,8 +9,16 @@ from market_data.data import InvalidTickerError, InvalidDateError, NoDataError
 import market_data.data_adapter as data_adapter
 
 DATA_ADAPTER_SOURCE = data_adapter.DataAdapterSource.SQLITE3
+TEST_MODE = False
 
 app = MarketData()
+
+def clear_screen():
+    if not TEST_MODE:
+        if os.name == 'nt':
+            _ = os.system('cls')
+        else:
+            _ = os.system('clear')
 
 @unique
 class MenuOptions(IntEnum):
@@ -19,6 +28,8 @@ class MenuOptions(IntEnum):
     QUIT = 4
 
 def main():
+    clear_screen()
+
     if len(sys.argv) > 1:
         conn_string = sys.argv[1]
         database = MarketData.Database(conn_string, DATA_ADAPTER_SOURCE)
@@ -51,18 +62,22 @@ def process_user_input():
             running = MainMenu.quit()
 
         elif user_input == MenuOptions.VIEW_SECURITIES:
+            clear_screen()
             running = MainMenu.view_securities()
 
         elif user_input == MenuOptions.ADD_SECURITIES:
             running = MainMenu.add_securities()
 
         elif user_input == MenuOptions.UPDATE_MARKET_DATA:
+            clear_screen()
             running = MainMenu.update_market_data()
 
         else:
+            clear_screen()
             running = MainMenu.invalid_option()
 
     except ValueError:
+        clear_screen()
         running = MainMenu.invalid_option()
 
     return running
@@ -84,6 +99,7 @@ class MainMenu:
             print(Messages.view_securities(tickers))
             try:
                 view_input = int(input(Messages.option_input()))
+                clear_screen()
 
                 if view_input == 0:
                     return_to_main_menu = True
@@ -93,14 +109,17 @@ class MainMenu:
                     if len(data) > 0:
                         print(Messages.view_security_data(ticker, data))
                         input(Messages.any_key_to_return())
+                        clear_screen()
                     else:
                         print(Messages.no_security_data(ticker))
                 else:
                     print(Messages.invalid_option())
 
             except ValueError:
+                clear_screen()
                 print(Messages.invalid_option())
 
+        clear_screen()
         return True
 
     @staticmethod
@@ -109,6 +128,7 @@ class MainMenu:
 
         app.add_security(ticker)
 
+        clear_screen()
         print(Messages.security_added(ticker))
 
         return True

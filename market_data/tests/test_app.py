@@ -19,6 +19,10 @@ import market_data.data_adapter as data_adapter
 from market_data.scraper import InvalidDateError, InvalidTickerError
 import market_data.tests.utils as test_utils
 
+# NOTE(steve): this is so we don't trigger the clear the console screen
+# function which is used for a better user experience
+app.TEST_MODE = True
+
 def check_output(actual_output, expected_output):
     for actual, expected in zip(actual_output, expected_output):
         if actual != expected:
