@@ -9,7 +9,7 @@ import market_data.data_adapter as data_adapter
 class MarketData:
 
     Database = namedtuple('Database', ['conn_string', 'source'])
-    init = False
+    _init = False
 
 
     # NOTE(steve): this method will be used to initialise all 
@@ -18,8 +18,6 @@ class MarketData:
     # TODO(steve): the DataAdapter should be passed into the 
     # MarketData class not a connection string to connect to
     # the database???
-    # NOTE(steve): database param is a named tuple
-    # Database = namedtuple('Database', ['conn_string', 'source'])
     def run(self, database):
         """
         Initialises MarketData class with scraper and data adapter.
@@ -27,7 +25,7 @@ class MarketData:
         Args:
             database: namedtuple('Database', ['conn_string', 'source']).
         """
-        self.init = True
+        self._init = True
         self._scraper = Scraper('yahoo')
         da = data_adapter.get_adapter(database.source)
         self._database = da.connect(database.conn_string)
@@ -37,13 +35,13 @@ class MarketData:
     # after the app is closed
     def close(self):
         """Ensures dependent objects are properly cleaned up."""
-        self.init = False
+        self._init = False
         self._database.close()
 
     # TODO(steve): should turn this into a decorator
     def _check_initialised(self):
         """Checks if class is initialised."""
-        if not self.init:
+        if not self._init:
             raise NotInitialisedError('Call run method first!')
 
     def add_security(self, ticker):
