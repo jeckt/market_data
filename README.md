@@ -5,6 +5,7 @@ API.
 TO DO
 =====
 
+* Update multiple dates for a single security - less scraper calls.
 * Create versioning for application. Ready for first release
 * Document code
 * Release notes
