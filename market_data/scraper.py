@@ -54,6 +54,10 @@ class Scraper:
     def scrape_eq_multiple_dates(self, ticker, date_list):
         if date_list is None or len(date_list) == 0:
             raise EmptyDateListError(ticker)
+
+        res = self.scrape_equity_data(ticker, date_list[0])
+        return [(date_list[0], res)], None
+
         raise InvalidTickerError(ticker)
 
 class InvalidSourceError(Exception):

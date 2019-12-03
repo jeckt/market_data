@@ -107,26 +107,49 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
 
 class ScraperYahooEquityMultipleDatesTests(unittest.TestCase):
 
-    @patch('urllib.request.urlopen', autospec=True)
-    def setUp(self, mock_urlopen):
+    def setUp(self):
         self.ticker = 'AMZN'
-        self.scraper = Scraper('yahoo')
-        self.mock_urlopen = mock_urlopen.return_value.__enter__.return_value
 
-    def test_scrape_invalid_ticker(self):
+    @patch('urllib.request.urlopen', autospec=True)
+    def test_scrape_invalid_ticker(self, mock_urlopen):
         ticker = 'AMZNN'
         dt = datetime.datetime(2019, 8, 23)
+        scraper = Scraper('yahoo')
 
-        self.mock_urlopen.read.return_value = b''
+        mock_urlopen = mock_urlopen.return_value.__enter__.return_value
+        mock_urlopen.read.return_value = b''
 
         with self.assertRaises(InvalidTickerError):
-            _, _ = self.scraper.scrape_eq_multiple_dates(ticker, [dt])
+            _, _ = scraper.scrape_eq_multiple_dates(ticker, [dt])
 
-    def test_scraper_empty_date_list_input(self):
-        self.mock_urlopen.status = 200
-        self.mock_urlopen.read.return_value = load_test_data()
+    @patch('urllib.request.urlopen', autospec=True)
+    def test_scraper_empty_date_list_input(self, mock_urlopen):
+        scraper = Scraper('yahoo')
+
+        mock_urlopen = mock_urlopen.return_value.__enter__.return_value
+        mock_urlopen.status = 200
+        mock_urlopen.read.return_value = load_test_data()
+
         with self.assertRaises(EmptyDateListError):
-            _, _ = self.scraper.scrape_eq_multiple_dates(self.ticker, [])
+            _, _ = scraper.scrape_eq_multiple_dates(self.ticker, [])
+
+    @patch('urllib.request.urlopen', autospec=True)
+    def test_scraper_single_date(self, mock_urlopen):
+        ticker, dt, expected_data = test_utils.get_expected_equity_data()
+        scraper = Scraper('yahoo')
+
+        mock_urlopen = mock_urlopen.return_value.__enter__.return_value
+        mock_urlopen.status = 200
+        mock_urlopen.read.return_value = load_test_data()
+
+        data, errors = scraper.scrape_eq_multiple_dates(ticker, [dt])
+
+        self.assertEqual(len(data), 1)
+        self.assertTrue(errors is None)
+        self.assertIsInstance(data[0][1], EquityData)
+        self.assertEqual(data[0][0], dt)
+        self.assertEqual(data[0][1], expected_data,
+                         msg=f'res: {data[0][1]} != ex: {expected_data}')
 
 if __name__ == '__main__':
     unittest.main()
