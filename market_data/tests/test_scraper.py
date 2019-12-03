@@ -12,6 +12,7 @@ import datetime
 
 from market_data.scraper import Scraper, InvalidSourceError
 from market_data.data import EquityData, InvalidTickerError, InvalidDateError
+from market_data.data import EmptyDateListError
 import market_data.tests.utils as test_utils
 
 class ScraperTests(unittest.TestCase):
@@ -106,20 +107,26 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
 
 class ScraperYahooEquityMultipleDatesTests(unittest.TestCase):
 
-    def setUp(self):
-        self.scraper = Scraper('yahoo')
-
     @patch('urllib.request.urlopen', autospec=True)
-    def test_scrape_invalid_ticker(self, mock_urlopen):
+    def setUp(self, mock_urlopen):
+        self.ticker = 'AMZN'
+        self.scraper = Scraper('yahoo')
+        self.mock_urlopen = mock_urlopen.return_value.__enter__.return_value
+
+    def test_scrape_invalid_ticker(self):
         ticker = 'AMZNN'
         dt = datetime.datetime(2019, 8, 23)
 
-        mock_urlopen_context = mock_urlopen.return_value.__enter__.return_value
-        mock_urlopen_context.read.return_value = b''
+        self.mock_urlopen.read.return_value = b''
 
         with self.assertRaises(InvalidTickerError):
-            results = self.scraper.scrape_equity_data_multiple_dates(ticker
-                                                                     [dt])
+            _, _ = self.scraper.scrape_eq_multiple_dates(ticker, [dt])
+
+    def test_scraper_empty_date_list_input(self):
+        self.mock_urlopen.status = 200
+        self.mock_urlopen.read.return_value = load_test_data()
+        with self.assertRaises(EmptyDateListError):
+            _, _ = self.scraper.scrape_eq_multiple_dates(self.ticker, [])
 
 if __name__ == '__main__':
     unittest.main()

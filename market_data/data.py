@@ -41,6 +41,9 @@ class InvalidTickerError(Exception):
 class InvalidDateError(Exception):
     pass
 
+class EmptyDateListError(Exception):
+    pass
+
 # TODO(steve): should error be here or market_data.py???
 class NoDataError(Exception):
     pass

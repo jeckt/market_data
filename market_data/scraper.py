@@ -2,7 +2,7 @@ import datetime
 import urllib.request
 from bs4 import BeautifulSoup
 
-from market_data.data import EquityData
+from market_data.data import EquityData, EmptyDateListError
 from market_data.data import InvalidTickerError, InvalidDateError
 
 class Scraper:
@@ -50,6 +50,11 @@ class Scraper:
             raise InvalidTickerError(ticker)
 
         raise InvalidDateError(f'{ticker}: {date}')
+
+    def scrape_eq_multiple_dates(self, ticker, date_list):
+        if date_list is None or len(date_list) == 0:
+            raise EmptyDateListError(ticker)
+        raise InvalidTickerError(ticker)
 
 class InvalidSourceError(Exception):
     pass
