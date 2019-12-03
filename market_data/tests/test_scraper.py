@@ -25,15 +25,14 @@ class ScraperTests(unittest.TestCase):
         with self.assertRaises(InvalidSourceError):
             scraper = Scraper('google')
 
+def load_test_data():
+    test_file = r'market_data/tests/amzn_scrape_test_data.html'
+    with open(test_file, 'rb') as f:
+        data = f.read()
+
+    return data
+
 class ScraperYahooEquityPricesTests(unittest.TestCase):
-
-    @classmethod
-    def load_test_data(cls):
-        test_file = r'market_data/tests/amzn_scrape_test_data.html'
-        with open(test_file, 'rb') as f:
-            data = f.read()
-
-        return data
 
     @patch('urllib.request.urlopen', autospec=True)
     def test_scrape_returns_correct_equity_data(self, mock_urlopen):
@@ -42,7 +41,7 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
 
         mock_urlopen_context = mock_urlopen.return_value.__enter__.return_value
         mock_urlopen_context.status = 200
-        mock_urlopen_context.read.return_value = self.load_test_data()
+        mock_urlopen_context.read.return_value = load_test_data()
 
         results = scraper.scrape_equity_data(ticker, dt)
 
@@ -59,7 +58,7 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
 
         mock_urlopen_context = mock_urlopen.return_value.__enter__.return_value
         mock_urlopen_context.status = 200
-        mock_urlopen_context.read.return_value = self.load_test_data()
+        mock_urlopen_context.read.return_value = load_test_data()
 
         results = scraper.scrape_equity_data(ticker, dt)
 
@@ -75,7 +74,7 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
 
         mock_urlopen_context = mock_urlopen.return_value.__enter__.return_value
         mock_urlopen_context.status = 200
-        mock_urlopen_context.read.return_value = self.load_test_data()
+        mock_urlopen_context.read.return_value = load_test_data()
 
         with self.assertRaises(InvalidDateError):
             results = scraper.scrape_equity_data(ticker, dt)
@@ -104,6 +103,23 @@ class ScraperYahooEquityPricesTests(unittest.TestCase):
 
         with self.assertRaises(InvalidTickerError):
             results = scraper.scrape_equity_data(ticker, dt)
+
+class ScraperYahooEquityMultipleDatesTests(unittest.TestCase):
+
+    def setUp(self):
+        self.scraper = Scraper('yahoo')
+
+    @patch('urllib.request.urlopen', autospec=True)
+    def test_scrape_invalid_ticker(self, mock_urlopen):
+        ticker = 'AMZNN'
+        dt = datetime.datetime(2019, 8, 23)
+
+        mock_urlopen_context = mock_urlopen.return_value.__enter__.return_value
+        mock_urlopen_context.read.return_value = b''
+
+        with self.assertRaises(InvalidTickerError):
+            results = self.scraper.scrape_equity_data_multiple_dates(ticker
+                                                                     [dt])
 
 if __name__ == '__main__':
     unittest.main()
