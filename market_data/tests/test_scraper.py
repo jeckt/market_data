@@ -147,7 +147,7 @@ class ScraperYahooEquityMultipleDatesTests(unittest.TestCase):
         self.assertEqual(len(data), 1)
         self.assertTrue(errors is None)
         self.assertIsInstance(data[0][1], EquityData)
-        self.assertEqual(data[0][0], dt)
+        self.assertEqual(data[0][0], dt.date())
         self.assertEqual(data[0][1], expected_data,
                          msg=f'res: {data[0][1]} != ex: {expected_data}')
 
@@ -173,7 +173,7 @@ class ScraperYahooEquityMultipleDatesTests(unittest.TestCase):
             self.assertIsInstance(d[1], EquityData)
 
         for i, date in enumerate(dates):
-            self.assertEqual(data[i][0], date)
+            self.assertEqual(data[i][0], date.date())
             expected_data = test_utils.get_test_data(test_data, self.ticker,
                                                      date)
             self.assertEqual(data[i][1], expected_data,

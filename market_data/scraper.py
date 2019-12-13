@@ -51,14 +51,50 @@ class Scraper:
 
         raise InvalidDateError(f'{ticker}: {date}')
 
+    def _normalise_datetime(self, date):
+        try:
+            return date.date()
+        except AttributeError:
+            return date
+
     def scrape_eq_multiple_dates(self, ticker, date_list):
         if date_list is None or len(date_list) == 0:
             raise EmptyDateListError(ticker)
 
-        res = self.scrape_equity_data(ticker, date_list[0])
-        return [(date_list[0], res)], None
+        clean_date_list = [self._normalise_datetime(dt) for dt in date_list]
 
-        raise InvalidTickerError(ticker)
+        url = r'https://finance.yahoo.com/quote/{ticker}/history?p={ticker}'
+        req = urllib.request.Request(url.replace('{ticker}', ticker))
+        with urllib.request.urlopen(req) as response:
+            page = response.read().decode('utf-8')
+
+        try:
+            parsed_html = BeautifulSoup(page, features='html.parser')
+            data_table = parsed_html.body.find('table',
+                                attrs={'data-test':'historical-prices'})
+            data_table = data_table.find('tbody')
+
+            data = {}
+            for row in data_table.children:
+                values = [col.next_element.text for col in
+                          row.children if col.find('span')]
+
+                dt = datetime.datetime.strptime(values[0], '%b %d, %Y')
+                values[0] = dt.date()
+                if values[0] in clean_date_list:
+                    d = EquityData(*(v.replace(',', '') for v in values[1:]))
+                    data[values[0]] = (values[0], d)
+
+                if len(data) == len(date_list):
+                    # NOTE(steve): we need to order the data based on the
+                    # order provided in the input date list
+                    ordered_data = []
+                    for date in clean_date_list:
+                        ordered_data.append(data[date])
+
+                    return ordered_data, None
+        except:
+            raise InvalidTickerError(ticker)
 
 class InvalidSourceError(Exception):
     pass
