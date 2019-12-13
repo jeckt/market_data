@@ -151,5 +151,33 @@ class ScraperYahooEquityMultipleDatesTests(unittest.TestCase):
         self.assertEqual(data[0][1], expected_data,
                          msg=f'res: {data[0][1]} != ex: {expected_data}')
 
+    @patch('urllib.request.urlopen', autospec=True)
+    def test_scraper_multiple_valid_dates(self, mock_urlopen):
+        test_data = test_utils.load_test_data()
+        scraper = Scraper('yahoo')
+
+        mock_urlopen = mock_urlopen.return_value.__enter__.return_value
+        mock_urlopen.status = 200
+        mock_urlopen.read.return_value = load_test_data()
+
+        dt_1 = datetime.datetime(2019, 8, 26)
+        dt_2 = datetime.datetime(2019, 8, 23)
+        dt_3 = datetime.datetime(2019, 8, 27)
+        dates = (dt_1, dt_2, dt_3)
+
+        data, errors = scraper.scrape_eq_multiple_dates(self.ticker, dates)
+
+        self.assertEqual(len(data), 3)
+        self.assertTrue(errors is None)
+        for d in data:
+            self.assertIsInstance(d[1], EquityData)
+
+        for i, date in enumerate(dates):
+            self.assertEqual(data[i][0], date)
+            expected_data = test_utils.get_test_data(test_data, self.ticker,
+                                                     date)
+            self.assertEqual(data[i][1], expected_data,
+                             msg=f'res: {data[i][1]} != ex: {expected_data}')
+
 if __name__ == '__main__':
     unittest.main()
