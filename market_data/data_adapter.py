@@ -60,6 +60,10 @@ class DataAdapter(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def bulk_update_market_data(self, security, equity_data):
+        pass
+
+    @abstractmethod
     def get_equity_data(self, security, dt):
         pass
 

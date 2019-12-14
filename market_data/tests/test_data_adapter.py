@@ -178,6 +178,35 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
         actual_data = self.database.get_equity_data(ticker, dt)
         self.assertEqual(expected_data, actual_data)
 
+    def test_bulk_update_for_security_not_in_list_raises_error(self):
+        ticker = 'AMZN'
+        with self.assertRaises(InvalidTickerError):
+            self.database.bulk_update_market_data(ticker, None)
+
+    def test_bulk_update_equity_data(self):
+        ticker = 'AMZN'
+        self.database.insert_securities([ticker])
+
+        test_data = test_utils.load_test_data()
+        dt_1 = datetime.datetime(2019, 8, 27)
+        expected_data_1 = test_utils.get_test_data(test_data, ticker, dt_1)
+
+        dt_2 = datetime.datetime(2019, 8, 26)
+        expected_data_2 = test_utils.get_test_data(test_data, ticker, dt_2)
+
+        data = ((dt_1, expected_data_1), (dt_2, expected_data_2))
+
+        self.database.bulk_update_market_data(ticker, data)
+
+        data_series = self.database.get_equity_data_series(ticker)
+        self.assertEqual(len(data_series), 2)
+
+        self.assertEqual(dt_1, data_series[0][0])
+        self.assertEqual(expected_data_1, data_series[0][1])
+
+        self.assertEqual(dt_2, data_series[1][0])
+        self.assertEqual(expected_data_2, data_series[1][1])
+
     def test_update_duplicate_equity_data_overrides_existing(self):
         ticker, dt, expected_data = test_utils.get_expected_equity_data()
         self.database.insert_securities([ticker])
@@ -217,7 +246,6 @@ class DataAdapterSecuritiesTests(unittest.TestCase):
         actual_data_1 = self.database.get_equity_data(ticker, dt_1)
         self.assertEqual(expected_data_1, actual_data_1)
 
-        # NOTE(steve): should this be in its own test case???
         data_series = self.database.get_equity_data_series(ticker)
         self.assertEqual(len(data_series), 2)
 

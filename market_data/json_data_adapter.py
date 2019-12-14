@@ -70,18 +70,23 @@ class JsonDataAdapter(data_adapter.DataAdapter):
         JsonDataAdapter._save_data(self.conn_string, data)
 
     def update_market_data(self, security, equity_data):
+        self.bulk_update_market_data(security, [equity_data])
+
+    def bulk_update_market_data(self, security, equity_data):
         securities = self.get_securities_list()
+
         if security in securities:
             data = JsonDataAdapter._load_data(self.conn_string)
             if security not in data.equity_data:
                 data.equity_data[security] = {}
 
-            dt_key = equity_data[0].strftime('%d-%b-%Y')
-            data.equity_data[security][dt_key] = equity_data[1]
+            for d in equity_data:
+                dt_key = d[0].strftime('%d-%b-%Y')
+                data.equity_data[security][dt_key] = d[1]
 
             JsonDataAdapter._save_data(self.conn_string, data)
         else:
-            raise InvalidTickerError
+            raise InvalidTickerError(security)
 
     def get_equity_data(self, security, dt):
         if security in self.get_securities_list():

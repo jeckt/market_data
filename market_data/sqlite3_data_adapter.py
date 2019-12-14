@@ -139,6 +139,24 @@ class Sqlite3DataAdapter(data_adapter.DataAdapter):
                                  data.low, data.close, data.adj_close,
                                  data.volume))
 
+    def bulk_update_market_data(self, security, equity_data):
+        self._check_is_valid_security(security)
+
+        ticker_id = self._get_security_id(security)
+
+        # TODO(steve): find a more efficient way to update the database
+        # instead of updating rows one by one
+        with self._conn:
+            for d in equity_data:
+                date, data = d[0], d[1]
+                sql = """REPLACE INTO equity_prices(ticker_id, date, open,
+                            high, low, close, adj_close, volume)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
+                cursor = self._conn.cursor()
+                cursor.execute(sql, (ticker_id, date, data.open, data.high,
+                                     data.low, data.close, data.adj_close,
+                                     data.volume))
+
     def _get_equity_data(self, ticker_id, date):
         with self._conn:
             sql = """SELECT open, high, low, close, adj_close, volume

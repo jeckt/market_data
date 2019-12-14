@@ -6,6 +6,7 @@ TO DO
 =====
 
 * Update multiple dates for a single security - less scraper calls.
+* Create class to deal with passing time series data as opposed to list of tuples
 * Create versioning for application. Ready for first release
 * Document code
 * Release notes
