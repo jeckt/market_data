@@ -74,27 +74,34 @@ class Scraper:
                                 attrs={'data-test':'historical-prices'})
             data_table = data_table.find('tbody')
 
-            data = {}
-            for row in data_table.children:
-                values = [col.next_element.text for col in
-                          row.children if col.find('span')]
-
-                dt = datetime.datetime.strptime(values[0], '%b %d, %Y')
-                values[0] = dt.date()
-                if values[0] in clean_date_list:
-                    d = EquityData(*(v.replace(',', '') for v in values[1:]))
-                    data[values[0]] = (values[0], d)
-
-                if len(data) == len(date_list):
-                    # NOTE(steve): we need to order the data based on the
-                    # order provided in the input date list
-                    ordered_data = []
-                    for date in clean_date_list:
-                        ordered_data.append(data[date])
-
-                    return ordered_data, None
         except:
             raise InvalidTickerError(ticker)
+
+        data = {}
+        for row in data_table.children:
+            values = [col.next_element.text for col in
+                      row.children if col.find('span')]
+
+            dt = datetime.datetime.strptime(values[0], '%b %d, %Y')
+            values[0] = dt.date()
+            if values[0] in clean_date_list:
+                d = EquityData(*(v.replace(',', '') for v in values[1:]))
+                data[values[0]] = (values[0], d)
+
+            if len(data) == len(date_list):
+                break
+
+        # NOTE(steve): we need to order the data based on the
+        # order provided in the input date list
+        ordered_data = []
+        errors = []
+        for date in clean_date_list:
+            if date in data:
+                ordered_data.append(data[date])
+            else:
+                errors.append(InvalidDateError(date))
+
+        return ordered_data, errors
 
 class InvalidSourceError(Exception):
     pass
