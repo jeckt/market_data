@@ -208,7 +208,8 @@ class EquityDataTests(unittest.TestCase):
         with self.assertRaises(InvalidTickerError):
             self.app.bulk_update_market_data(self.ticker, [self.test_date])
 
-    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    @patch('market_data.scraper.Scraper.scrape_eq_multiple_dates',
+           autospec=True)
     def test_invalid_ticker_in_bulk_update_market_data(self, mock_scraper):
         self.app.add_security('AMZNN')
 
@@ -216,15 +217,17 @@ class EquityDataTests(unittest.TestCase):
         with self.assertRaises(InvalidTickerError):
             self.app.bulk_update_market_data('AMZNN', [self.test_date])
 
-    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    @patch('market_data.scraper.Scraper.scrape_eq_multiple_dates',
+           autospec=True)
     def test_invalid_date_in_bulk_update_market_data(self, mock_scraper):
         self.app.add_security(self.ticker)
 
-        mock_scraper.return_value = [], [InvalidDateError(self.test_date)]
+        expected_errrors = [InvalidDateError(self.test_date.date())]
+        mock_scraper.return_value = [], expected_errrors
         errors = self.app.bulk_update_market_data(self.ticker, self.test_date)
 
         self.assertEqual(len(errors), 1)
-        self.assertEqual(str(errors[0]), self.test_date)
+        self.assertEqual(str(errors[0]), str(self.test_date.date()))
 
     @patch('market_data.scraper.Scraper.scrape_eq_multiple_dates',
            autospec=True)
@@ -239,7 +242,7 @@ class EquityDataTests(unittest.TestCase):
         expected_data = []
         for ticker, dt in params:
             data = test_utils.get_test_data(test_data, ticker, dt)
-            expected_data.append((dt.date(), data))
+            expected_data.append((dt, data))
 
         mock_scraper.return_value = expected_data, []
         errors = self.app.bulk_update_market_data(self.ticker, date_list)
@@ -258,8 +261,8 @@ class EquityDataTests(unittest.TestCase):
         self.assertEqual(len(data_series), 2)
 
         for i in range(2):
-            self.assertEqual(date_list[i], data_series[i][0])
-            self.assertEqual(expected_data[i], data_series[i][1])
+            self.assertEqual(expected_data[i][0], data_series[i][0])
+            self.assertEqual(expected_data[i][1], data_series[i][1])
 
         new_app.close()
 

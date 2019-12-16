@@ -143,5 +143,29 @@ class MarketData:
         else:
             raise InvalidTickerError(ticker)
 
+    def bulk_update_market_data(self, ticker, date_list):
+        """
+        Updates market data for a selected security over a
+        specified number of dates in list.
+
+        Args:
+            ticker: Yahoo ticker.
+            date_list: List of dates to update market data on.
+
+        Returns:
+            A list of errors or an empty list if no errors.
+
+        Raise:
+            InvalidTickerError: Security not in market data.
+        """
+        self._check_initialised()
+        if ticker in self._database.get_securities_list():
+            data, errors = self._scraper.scrape_eq_multiple_dates(ticker,
+                                                                  date_list)
+            self._database.bulk_update_market_data(ticker, data)
+            return errors
+        else:
+            raise InvalidTickerError(ticker)
+
 class NotInitialisedError(Exception):
     pass
