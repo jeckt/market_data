@@ -204,6 +204,65 @@ class EquityDataTests(unittest.TestCase):
         with self.assertRaises(InvalidTickerError):
             self.app.update_market_data(self.ticker, self.test_date)
 
+    def test_bulk_update_market_data_on_security_not_in_list(self):
+        with self.assertRaises(InvalidTickerError):
+            self.app.bulk_update_market_data(self.ticker, [self.test_date])
+
+    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    def test_invalid_ticker_in_bulk_update_market_data(self, mock_scraper):
+        self.app.add_security('AMZNN')
+
+        mock_scraper.side_effect = InvalidTickerError
+        with self.assertRaises(InvalidTickerError):
+            self.app.bulk_update_market_data('AMZNN', [self.test_date])
+
+    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    def test_invalid_date_in_bulk_update_market_data(self, mock_scraper):
+        self.app.add_security(self.ticker)
+
+        mock_scraper.return_value = [], [InvalidDateError(self.test_date)]
+        errors = self.app.bulk_update_market_data(self.ticker, self.test_date)
+
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(str(errors[0]), self.test_date)
+
+    @patch('market_data.scraper.Scraper.scrape_eq_multiple_dates',
+           autospec=True)
+    def test_bulk_update_market_data_and_get_equity_data(self, mock_scraper):
+        self.app.add_security(self.ticker)
+
+        date_list = [datetime.datetime(2019, 8, 27),
+                     datetime.datetime(2019, 8, 26)]
+        params = zip([self.ticker] * 2, date_list)
+        test_data = test_utils.load_test_data()
+
+        expected_data = []
+        for ticker, dt in params:
+            data = test_utils.get_test_data(test_data, ticker, dt)
+            expected_data.append((dt.date(), data))
+
+        mock_scraper.return_value = expected_data, []
+        errors = self.app.bulk_update_market_data(self.ticker, date_list)
+
+        self.assertEqual(len(errors), 0)
+
+        self.app.close()
+
+        new_app = MarketData()
+        new_app.run(database=self.database)
+
+        self.check_equity_data(params, expected_data)
+
+        # NOTE(steve): should this be in a separate test???
+        data_series = new_app.get_equity_data_series(self.ticker)
+        self.assertEqual(len(data_series), 2)
+
+        for i in range(2):
+            self.assertEqual(date_list[i], data_series[i][0])
+            self.assertEqual(expected_data[i], data_series[i][1])
+
+        new_app.close()
+
     # TODO(steve): should we split these two tests by
     # injecting the market data directly into the test database???
     def test_update_market_data_and_get_equity_data(self):
