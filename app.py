@@ -139,7 +139,6 @@ class MainMenu:
         tickers = app.get_securities_list()
         for ticker in tickers:
             try:
-                no_data = False
                 dt, _ = app.get_latest_equity_data(ticker)
                 dt += datetime.timedelta(days=1)
             except InvalidTickerError:
