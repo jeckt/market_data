@@ -197,9 +197,6 @@ class AppUpdateMarketDataTests(unittest.TestCase):
 
         check_output(self.actual_output, self.expected_output)
 
-        # Check that scraper was called
-        mock_scraper.assert_called_once()
-
     @freeze_time('2019-09-29') # Sunday
     @patch('market_data.scraper.Scraper.scrape_eq_multiple_dates',
            autospec=True)
@@ -246,9 +243,6 @@ class AppUpdateMarketDataTests(unittest.TestCase):
         self.expected_output.append(app.Messages.quit())
 
         check_output(self.actual_output, self.expected_output)
-
-        # Check that scraper was called
-        mock_scraper.assert_called_once()
 
     # TODO(steve): isn't this duplication of the functional cli test???
     @freeze_time('2019-08-27')

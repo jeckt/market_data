@@ -116,10 +116,11 @@ class CommandLineInterfaceTests(unittest.TestCase):
         self.assertEqual(len(self.actual_output), len(expected_output))
 
     @freeze_time('2019-05-10')
-    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    @patch('market_data.scraper.Scraper.scrape_eq_multiple_dates',
+           autospec=True)
     def test_update_and_view_updated_security(self, mock_scraper):
         ticker, dt, expected_data = test_utils.get_expected_equity_data()
-        mock_scraper.return_value = expected_data
+        mock_scraper.return_value = [(dt.date(), expected_data)], []
 
         # Mary on hearing from Alex about this new command line
         # app decides to try it.

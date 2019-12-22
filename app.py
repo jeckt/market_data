@@ -146,17 +146,21 @@ class MainMenu:
             except NoDataError:
                 dt = today
 
-            # TODO(steve): expose errors in debug mode!
+            date_list = []
             while dt <= today:
                 if dt.weekday() < 5: # saturday = 5
-                    try:
-                        app.update_market_data(ticker, dt)
-                    except InvalidTickerError:
-                        pass
-                    except InvalidDateError:
-                        pass
-
+                    date_list.append(dt)
                 dt += datetime.timedelta(days=1)
+
+            # TODO(steve): expose errors in debug mode!
+            try:
+                if len(date_list) > 0:
+                    errors = app.bulk_update_market_data(ticker, date_list)
+            except InvalidTickerError:
+                pass
+            except InvalidDateError:
+                pass
+
         print(Messages.market_data_updated())
 
         return True
