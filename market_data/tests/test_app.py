@@ -153,7 +153,8 @@ class AppUpdateMarketDataTests(unittest.TestCase):
     def tearDown(self):
         common_teardown(self)
 
-    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    @patch('market_data.scraper.Scraper.scrape_eq_multiple_dates',
+           autospec=True)
     def test_update_security_data_on_invalid_ticker(self, mock_scraper):
         ticker = 'AAMZNN'
         mock_scraper.side_effect = InvalidTickerError(ticker)
@@ -196,12 +197,17 @@ class AppUpdateMarketDataTests(unittest.TestCase):
 
         check_output(self.actual_output, self.expected_output)
 
+        # Check that scraper was called
+        mock_scraper.assert_called_once()
+
     @freeze_time('2019-09-29') # Sunday
-    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    @patch('market_data.scraper.Scraper.scrape_eq_multiple_dates',
+           autospec=True)
     def test_update_security_data_on_invalid_date(self, mock_scraper):
         ticker = 'AMZN'
         dt = datetime.datetime.today()
-        mock_scraper.side_effect = InvalidDateError(f'{ticker}: {dt}')
+        errors = [InvalidDateError(f'{dt}')]
+        mock_scraper.return_value = errors
 
         self.user_input.append(app.MenuOptions.ADD_SECURITIES)
         self.user_input.append(ticker)
@@ -241,9 +247,13 @@ class AppUpdateMarketDataTests(unittest.TestCase):
 
         check_output(self.actual_output, self.expected_output)
 
+        # Check that scraper was called
+        mock_scraper.assert_called_once()
+
     # TODO(steve): isn't this duplication of the functional cli test???
     @freeze_time('2019-08-27')
-    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    @patch('market_data.scraper.Scraper.scrape_eq_multiple_dates',
+           autospec=True)
     def test_update_security_data_on_multiple_dates(self, mock_scraper):
         # Load test data
         dataset = test_utils.load_test_data()
@@ -276,7 +286,12 @@ class AppUpdateMarketDataTests(unittest.TestCase):
         self.expected_output.append(app.Messages.main_menu())
         self.expected_output.append(app.Messages.option_input())
 
-        mock_scraper.side_effect = [expected_data_dt2, expected_data_dt3]
+        ret_data = [
+            (dt2.date(), expected_data_dt2),
+            (dt3.date(), expected_data_dt3)
+        ]
+        mock_scraper.return_value = ret_data, []
+
         self.user_input.append(app.MenuOptions.UPDATE_MARKET_DATA)
         self.expected_output.append(app.Messages.market_data_updated())
         self.expected_output.append(app.Messages.main_menu())
@@ -305,11 +320,15 @@ class AppUpdateMarketDataTests(unittest.TestCase):
 
         check_output(self.actual_output, self.expected_output)
 
+        # Check that scraper was called
+        mock_scraper.assert_called_once()
+
     @freeze_time('2019-05-10')
-    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    @patch('market_data.scraper.Scraper.scrape_eq_multiple_dates',
+           autospec=True)
     def test_update_security_data(self, mock_scraper):
         ticker, dt, expected_data = test_utils.get_expected_equity_data()
-        mock_scraper.return_value = expected_data
+        mock_scraper.return_value = [(dt.date(), expected_data)], []
 
         self.user_input.append(app.MenuOptions.ADD_SECURITIES)
         self.user_input.append(ticker)
@@ -351,6 +370,9 @@ class AppUpdateMarketDataTests(unittest.TestCase):
         self.expected_output.append(app.Messages.quit())
 
         check_output(self.actual_output, self.expected_output)
+
+        # Check that scraper was called
+        mock_scraper.assert_called_once()
 
 @parameterized_class(('data_adapter_source', ),[
     [data_adapter.DataAdapterSource.JSON, ],
