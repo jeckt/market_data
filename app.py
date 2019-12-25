@@ -3,6 +3,7 @@
 import os
 import sys
 import datetime
+from decimal import Decimal
 from enum import IntEnum, unique
 from market_data.market_data import MarketData
 from market_data.data import InvalidTickerError, InvalidDateError, NoDataError
@@ -220,16 +221,21 @@ class Messages:
     # which stores dates and equity data for a single security
     @staticmethod
     def view_security_data(ticker, equity_data_series):
+        TWO_PLACES = Decimal('1.00')
         msg = f'{ticker}\n'
         msg += f'{"=" * len(ticker)}\n\n'
-        msg += 'Date         | Open     | High     | Low      | Close\n'
-        msg += '========================================================\n'
+        msg += 'Date         |   Open   |   High   |   Low    |   Close   \n'
+        msg += '==========================================================\n'
         for data in equity_data_series:
+            data_open = str(data[1].open.quantize(TWO_PLACES)).rjust(7)
+            data_high = str(data[1].high.quantize(TWO_PLACES)).rjust(7)
+            data_low = str(data[1].low.quantize(TWO_PLACES)).rjust(7)
+            data_close = str(data[1].close.quantize(TWO_PLACES)).rjust(7)
             msg += f'{data[0].strftime("%d-%b-%Y")}  | '
-            msg += f'{data[1].open:,.2f} | '
-            msg += f'{data[1].high:,.2f} | '
-            msg += f'{data[1].low:,.2f} | '
-            msg += f'{data[1].close:,.2f}  \n'
+            msg += f'{data_open}  | '
+            msg += f'{data_high}  | '
+            msg += f'{data_low}  | '
+            msg += f'{data_close}  \n'
         return msg
 
     @staticmethod
