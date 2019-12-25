@@ -229,7 +229,7 @@ class Messages:
             msg += f'{data[1].open:,.2f} | '
             msg += f'{data[1].high:,.2f} | '
             msg += f'{data[1].low:,.2f} | '
-            msg += f'{data[1].close:,.2f}  \n\n'
+            msg += f'{data[1].close:,.2f}  \n'
         return msg
 
     @staticmethod
