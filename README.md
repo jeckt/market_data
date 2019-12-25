@@ -2,6 +2,9 @@ A simple application that collects daily financial market data
 and allows for retrieval from other applications via an exposed
 API.
 
+Database schema can be viewed by loading database_schema.drawio
+into draw.io website.
+
 TO DO
 =====
 
