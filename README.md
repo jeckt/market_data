@@ -5,7 +5,6 @@ API.
 TO DO
 =====
 
-* Update multiple dates for a single security - less scraper calls.
 * Create class to deal with passing time series data as opposed to list of tuples
 * Create versioning for application. Ready for first release
 * Document code
@@ -15,6 +14,7 @@ TO DO
 
 Features & Bugs
 
+* FGG.ax ticker is only collecting data for one date
 * Remove securities
-* Formatting of equity data output in CLI
-* Handle 503 Service Unavailable errors in update market data
+* CLI data output - reduce number of dates shown for readability.
+* Handle 503 Service Unavailable errors in update market data (rare bug - happened once)
