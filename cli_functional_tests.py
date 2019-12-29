@@ -41,7 +41,8 @@ class CommandLineInterfaceTests(unittest.TestCase):
             pass
 
     @freeze_time('2019-08-27')
-    @patch('market_data.scraper.Scraper.scrape_equity_data', autospec=True)
+    @patch('market_data.scraper.Scraper.scrape_eq_multiple_dates',
+           autospec=True)
     def test_update_security_for_multiple_dates(self, mock_scraper):
         # Load test data
         dataset = test_utils.load_test_data()
@@ -78,7 +79,11 @@ class CommandLineInterfaceTests(unittest.TestCase):
         # He updates the market data to get the latest data available
         # The app will update all market data from the last available
         # date to the current date
-        mock_scraper.side_effect = [expected_data_dt2, expected_data_dt3]
+        ret_value = [
+            (dt2.date(), expected_data_dt2),
+            (dt3.date(), expected_data_dt3)
+        ]
+        mock_scraper.return_value = ret_value, []
         self.user_input.append(app.MenuOptions.UPDATE_MARKET_DATA)
         expected_output.append(msg.market_data_updated())
         expected_output.append(msg.main_menu())
