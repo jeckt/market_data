@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+import os
+import sys
+import inspect
+file_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
+sys.path.insert(0, os.path.split(os.path.split(file_path)[0])[0])
+
 import unittest
 from unittest import skip
 from unittest.mock import patch, Mock

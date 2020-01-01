@@ -13,7 +13,7 @@ import datetime
 from parameterized import parameterized_class
 from freezegun import freeze_time
 
-import app
+import cli as app
 from market_data.market_data import MarketData
 import market_data.data_adapter as data_adapter
 from market_data.scraper import InvalidDateError, InvalidTickerError
@@ -75,7 +75,7 @@ class AppMainMenuTests(unittest.TestCase):
     def test_quit_option_selected_exits_app(self):
         self.user_input.append(app.MenuOptions.QUIT)
 
-        sys.argv = ['./app.py', self.database]
+        sys.argv = ['./cli.py', self.database]
         app.main()
 
         self.expected_output.append(app.Messages.quit())
@@ -86,7 +86,7 @@ class AppMainMenuTests(unittest.TestCase):
         self.user_input.append('-1')
         self.user_input.append(app.MenuOptions.QUIT)
 
-        sys.argv = ['./app.py', self.database]
+        sys.argv = ['./cli.py', self.database]
         app.main()
 
         self.expected_output.append(app.Messages.invalid_option())
@@ -101,7 +101,7 @@ class AppMainMenuTests(unittest.TestCase):
         self.user_input.append('AMZN')
         self.user_input.append(app.MenuOptions.QUIT)
 
-        sys.argv = ['./app.py', self.database]
+        sys.argv = ['./cli.py', self.database]
         app.main()
 
         self.expected_output.append(app.Messages.add_security_input())
@@ -119,7 +119,7 @@ class AppMainMenuTests(unittest.TestCase):
         self.user_input.append('0') # Return to Main Menu
         self.user_input.append(app.MenuOptions.QUIT)
 
-        sys.argv = ['./app.py', self.database]
+        sys.argv = ['./cli.py', self.database]
         app.main()
 
         self.expected_output.append(app.Messages.add_security_input())
@@ -167,7 +167,7 @@ class AppUpdateMarketDataTests(unittest.TestCase):
         self.user_input.append('0') # Return to Main Menu
         self.user_input.append(app.MenuOptions.QUIT)
 
-        sys.argv = ['./app.py', self.database]
+        sys.argv = ['./cli.py', self.database]
         app.main()
 
         # Add security
@@ -214,7 +214,7 @@ class AppUpdateMarketDataTests(unittest.TestCase):
         self.user_input.append('0') # Return to Main Menu
         self.user_input.append(app.MenuOptions.QUIT)
 
-        sys.argv = ['./app.py', self.database]
+        sys.argv = ['./cli.py', self.database]
         app.main()
 
         # Add security
@@ -272,7 +272,7 @@ class AppUpdateMarketDataTests(unittest.TestCase):
         data.update_market_data(ticker, (dt1, expected_data_dt1))
         data.close()
 
-        sys.argv = ['./app.py', self.database]
+        sys.argv = ['./cli.py', self.database]
         self.expected_output = []
         self.expected_output.append(
             app.Messages.load_existing_database(self.database)
@@ -333,7 +333,7 @@ class AppUpdateMarketDataTests(unittest.TestCase):
         self.user_input.append('0') # Return to Main Menu
         self.user_input.append(app.MenuOptions.QUIT)
 
-        sys.argv = ['./app.py', self.database]
+        sys.argv = ['./cli.py', self.database]
         app.main()
 
         # Add security
@@ -392,7 +392,7 @@ class AppViewSecuritiesTests(unittest.TestCase):
         self.user_input.append('0') # Return to Main Menu
         self.user_input.append(app.MenuOptions.QUIT)
 
-        sys.argv = ['./app.py', self.database]
+        sys.argv = ['./cli.py', self.database]
         app.main()
 
         self.expected_output.append(app.Messages.add_security_input())
@@ -418,7 +418,7 @@ class AppViewSecuritiesTests(unittest.TestCase):
         self.user_input.append('0') # Return to Main Menu
         self.user_input.append(app.MenuOptions.QUIT)
 
-        sys.argv = ['./app.py', self.database]
+        sys.argv = ['./cli.py', self.database]
         app.main()
 
         self.expected_output.append(app.Messages.view_securities([]))
@@ -436,7 +436,7 @@ class AppViewSecuritiesTests(unittest.TestCase):
         self.user_input.append('0') # Return to Main Menu
         self.user_input.append(app.MenuOptions.QUIT)
 
-        sys.argv = ['./app.py', self.database]
+        sys.argv = ['./cli.py', self.database]
         app.main()
 
         self.expected_output.append(app.Messages.view_securities([]))
@@ -458,7 +458,7 @@ class AppViewSecuritiesTests(unittest.TestCase):
         self.user_input.append('0') # Return to Main Menu
         self.user_input.append(app.MenuOptions.QUIT)
 
-        sys.argv = ['./app.py', self.database]
+        sys.argv = ['./cli.py', self.database]
         app.main()
 
         self.expected_output.append(app.Messages.view_securities([]))
@@ -497,16 +497,16 @@ class AppDatabaseTests(unittest.TestCase):
             os.remove(self.database)
 
     def test_app_terminates_if_no_database_provided(self):
-        sys.argv = ['./app.py']
+        sys.argv = ['./cli.py']
         app.main()
 
         self.expected_output.append(app.Messages.no_database_specified())
         check_output(self.actual_output, self.expected_output)
 
     def test_app_creates_database_on_database_not_found(self):
-        with patch('app.process_user_input', autospec=True) as mock_proc:
+        with patch('cli.process_user_input', autospec=True) as mock_proc:
             mock_proc.return_value = False
-            sys.argv = ['./app.py', self.database]
+            sys.argv = ['./cli.py', self.database]
             app.main()
 
         msg = app.Messages.new_database_created(self.database)
@@ -521,9 +521,9 @@ class AppDatabaseTests(unittest.TestCase):
         open(self.database, 'w').close()
         self.assertTrue(os.path.isfile(self.database))
 
-        with patch('app.process_user_input', autospec=True) as mock_proc:
+        with patch('cli.process_user_input', autospec=True) as mock_proc:
             mock_proc.return_value = False
-            sys.argv = ['./app.py', self.database]
+            sys.argv = ['./cli.py', self.database]
             app.main()
 
         msg = app.Messages.load_existing_database(self.database)

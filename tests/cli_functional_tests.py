@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+import os
+import sys
+import inspect
+file_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
+sys.path.insert(0, os.path.split(os.path.split(file_path)[0])[0])
+
 import sys
 import unittest
 from unittest.mock import patch
@@ -8,8 +14,8 @@ import datetime
 from parameterized import parameterized_class
 from freezegun import freeze_time
 
-import app
-from app import Messages as msg
+import cli as app
+from cli import Messages as msg
 import market_data.data_adapter as data_adapter
 import market_data.tests.utils as test_utils
 
