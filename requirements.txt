@@ -4,4 +4,4 @@ freezegun==0.3.12
 parameterized==0.7.0
 python-dateutil==2.8.0
 six==1.12.0
-soupsieve==1.9.3
+soupsieve==2.8.4
